@@ -1,0 +1,4 @@
+- wapiti - done; modules, only one page
+- nikto - done; everything, can't specify pages
+- nuclei - done; disable interactsh server for OAST testing, exclude OAST based templates, see config
+- zap - done; active and passive, no spider

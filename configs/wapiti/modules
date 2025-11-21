@@ -1,0 +1,1 @@
+backup,brute_login_form,buster,cms,cookieflags,crlf,csp,csrf,exec,file,htaccess,htp,http_header,https_redirect,ldap,log4shell,methods,network_device,nikto,permanentxss,redirect,shellshock,spring4shell,sql,ssl,ssrf,takeover,timesql,upload,wp_enum,xss,xxe

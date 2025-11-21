@@ -1,0 +1,15 @@
+sudo snap install zaproxy --classic
+
+cd /usr/local/share/
+git clone https://github.com/sullo/nikto.git
+sudo git clone https://github.com/sullo/nikto.git
+sudo chmod +x nikto/program/nikto.pl
+sudo ln -sf /usr/local/share/nikto/program/nikto.pl /usr/local/bin/nikto
+
+sudo apt install wapiti
+sudo snap install go --classic --channel=1.25/stable
+go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@v3.4.10
+sudo mv /home/michal/go/bin/nuclei /usr/local/bin/
+zaproxy -daemon -port 8080 -config api.disablekey=true
+
+
