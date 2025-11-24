@@ -330,11 +330,11 @@ func runWapiti(ctx context.Context, targets []string) {
 	outputDir := outputsDirFromCtx(ctx)
 
 	mods := []string{
-		"backup", "brute_login_form", "buster", "cms", "cookieflags", "crlf", "csp",
+		"backup", "cms", "cookieflags", "crlf", "csp",
 		"csrf", "exec", "file", "htaccess", "htp", "http_header", "https_redirect",
-		"ldap", "log4shell", "methods", "network_device", "nikto", "permanentxss",
-		"redirect", "shellshock", "spring4shell", "sql", "ssl", "ssrf", "takeover",
-		"timesql", "upload", "wp_enum", "xss", "xxe",
+		"ldap", "log4shell", "methods", "permanentxss",
+		"redirect", "shellshock", "spring4shell", "sql", "ssl", "ssrf",
+		"upload", "wp_enum", "xss", "xxe",
 	}
 	modArg := strings.Join(mods, ",")
 
@@ -363,6 +363,7 @@ func runWapiti(ctx context.Context, targets []string) {
 		cmd := exec.CommandContext(
 			ctx,
 			"wapiti",
+			"--flush-session",
 			"-m", modArg,
 			"-u", t,
 			"--scope", "page",

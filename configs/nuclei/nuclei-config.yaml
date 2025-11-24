@@ -1,9 +1,52 @@
 no-interactsh: true
 disable-update-check: true
 
+include-tags:
+  - cve
+  - dast
+  - headless
+  - ssl
+  - http
+
 exclude-tags:
   - dos
-  - bruteforce
+  - local
+  - cloud
+  - file
+  - c2
+  - fortinet
+  - audit
+  - dns
+  - network
+  - token-spray
+  - takeover
+  - osint
+  - honeypot
+  - cnvd
+  - creds-stuffing
+  # container infra
+  - k8s
+  - kubernetes
+  - docker
+  - harbor
+  - registry
+  # dbs
+  - mysql
+  - mssql
+  - postgres
+  - postgresql
+  - redis
+  - mongodb
+  - couchdb
+  # devices / IoT / network appliances
+  - iot
+  - router
+  - camera
+  - nas
+  - dvr
+  - vpn
+  - firewall
+  - waf
 
 exclude-templates:
   - http/cves/2019/CVE-2019-14696.yaml
@@ -17,3 +60,5 @@ exclude-templates:
   - dast/vulnerabilities/sqli/time-based-sqli.yaml
   - javascript/enumeration/minecraft-enum.yaml
   - javascript/enumeration/minecraft-enum.yaml
+  - headless/extract-urls.yaml
+  - headless/screenshot.yaml
