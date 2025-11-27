@@ -1,0 +1,50 @@
+name,cwe,keyphrase
+Backup file,CWE-530,
+Cleartext Submission of Password,CWE-319,
+CRLF Injection,CWE-93,
+Content Security Policy Configuration,CWE-693,
+Cross Site Request Forgery,CWE-352,
+Command execution,CWE-78,
+Path Traversal,CWE-22,
+Fingerprint web technology,0,
+Fingerprint web application framework,0,
+Fingerprint web server,0,
+Htaccess Bypass,CWE-538,
+HTML Injection,CWE-79,
+Clickjacking Protection,CWE-1021,
+MIME Type Confusion,CWE-16,
+HTTP Strict Transport Security (HSTS),CWE-319,
+HttpOnly Flag cookie,CWE-1004,
+Unencrypted Channels,CWE-319,
+Inconsistent Redirection,CWE-201,
+Information Disclosure - Full Path,CWE-209,
+Internal Server Error,CWE-550,
+LDAP Injection,CWE-90,
+Log4Shell,CWE-117,
+HTTP Methods,0,
+Open Redirect,CWE-601,
+Reflected Cross Site Scripting,CWE-79,
+Resource consumption,CWE-405,
+Secure Flag cookie,CWE-614,
+Spring4Shell,CWE-94,
+SQL Injection,CWE-89,
+Server Side Request Forgery,CWE-918,
+Stored HTML Injection,CWE-79,
+Stored Cross Site Scripting,CWE-79,
+Unrestricted File Upload,CWE-434,
+XPATH Injection,CWE-91,
+XML External Entity,CWE-611,
+TLS/SSL misconfigurations,CWE-297,Requested hostname doesn't match
+TLS/SSL misconfigurations,CWE-295,Self-signed certificate detected
+TLS/SSL misconfigurations,CWE-298,Certificate has expired
+TLS/SSL misconfigurations,CWE-295,Extended Validation
+TLS/SSL misconfigurations,CWE-354,OCSP Must-Staple extension
+TLS/SSL misconfigurations,CWE-300,Certificate transparency
+TLS/SSL misconfigurations,CWE-319,Strict Transport Security (HSTS)
+TLS/SSL misconfigurations,CWE-310,Server is vulnerable to Heartbleed attack
+TLS/SSL misconfigurations,CWE-295,Server is vulnerable to CRIME attack
+TLS/SSL misconfigurations,CWE-310,Server is vulnerable to OpenSSL CCS (CVE-2014-0224)
+TLS/SSL misconfigurations,CWE-310,Server doesn't support secure renegotiations
+TLS/SSL misconfigurations,CWE-400,Server honors client-initiated renegotiations
+TLS/SSL misconfigurations,CWE-327,The following ciphers
+TLS/SSL misconfigurations,CWE-327,The following protocols are deprecated

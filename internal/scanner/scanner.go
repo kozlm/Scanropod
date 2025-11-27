@@ -218,6 +218,14 @@ func runNikto(ctx context.Context, targets []string) {
 	reportDir := reportsDirFromCtx(ctx)
 	outputDir := outputsDirFromCtx(ctx)
 
+	plugins := []string{
+		"tests", "cookies", "headers", "ssl", "httpoptions", "robots",
+		"paths", "dictionary", "cgi", "content_search", "fileops",
+		"msgs", "sitefiles", "clientaccesspolicy", "multiple_index",
+		"shellshock", "strutschock", "apache_expect_xss", "put_del_test", "report_json",
+	}
+	pluginArg := strings.Join(plugins, ",")
+
 	for _, t := range targets {
 		select {
 		case <-ctx.Done():
@@ -244,7 +252,8 @@ func runNikto(ctx context.Context, targets []string) {
 			ctx,
 			"nikto",
 			"-h", t,
-			"-Tuning", "x",
+			"-Tuning", "x6abd",
+			"-Plugins", pluginArg,
 			"-ask", "no",
 			"-nointeractive",
 			"-o", reportFile, // report file
@@ -331,8 +340,8 @@ func runWapiti(ctx context.Context, targets []string) {
 
 	mods := []string{
 		"backup", "cms", "cookieflags", "crlf", "csp",
-		"csrf", "exec", "file", "htaccess", "htp", "http_header", "https_redirect",
-		"ldap", "log4shell", "methods", "permanentxss",
+		"csrf", "exec", "file", "htaccess", "htp", "https_redirect",
+		"ldap", "log4shell", "methods", "permanentxss", "http_headers",
 		"redirect", "shellshock", "spring4shell", "sql", "ssl", "ssrf",
 		"upload", "wp_enum", "xss", "xxe",
 	}
@@ -366,7 +375,7 @@ func runWapiti(ctx context.Context, targets []string) {
 			"--flush-session",
 			"-m", modArg,
 			"-u", t,
-			"--scope", "page",
+			"--scope", "folder",
 			"-f", "json",
 			"-o", reportFile, // report path via wapiti mechanism
 		)
