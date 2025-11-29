@@ -340,7 +340,7 @@ func runWapiti(ctx context.Context, targets []string) {
 
 	mods := []string{
 		"backup", "cms", "cookieflags", "crlf", "csp",
-		"csrf", "exec", "file", "htaccess", "htp", "https_redirect",
+		"csrf", "exec", "file", "htaccess", "https_redirect",
 		"ldap", "log4shell", "methods", "permanentxss", "http_headers",
 		"redirect", "shellshock", "spring4shell", "sql", "ssl", "ssrf",
 		"upload", "wp_enum", "xss", "xxe",

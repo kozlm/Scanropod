@@ -1,1 +1,1 @@
-backup,cms,cookieflags,crlf,csp,csrf,exec,file,htaccess,htp,https_redirect,ldap,log4shell,methods,permanentxss,redirect,shellshock,spring4shell,sql,ssl,ssrf,upload,wp_enum,xss,xxe
+backup,cms,cookieflags,crlf,csp,csrf,exec,file,htaccess,htp,http_headers,https_redirect,ldap,log4shell,methods,permanentxss,redirect,shellshock,spring4shell,sql,ssl,ssrf,upload,wp_enum,xss,xxe
