@@ -8,17 +8,13 @@ type ScanRequest struct {
 	Options  map[string]interface{} `json:"options,omitempty"`
 }
 
-type Vulnerability struct {
-	Tool     string `json:"tool"`
-	Title    string `json:"title"`
-	Severity string `json:"severity"`
-	URL      string `json:"url"`
-	Details  string `json:"details,omitempty"`
-}
-
 type ScanResult struct {
-	ID              string          `json:"id"`
-	StartedAt       time.Time       `json:"started_at"`
-	FinishedAt      *time.Time      `json:"finished_at,omitempty"`
-	Vulnerabilities []Vulnerability `json:"vulnerabilities"`
+	ID         string     `json:"id"`
+	Targets    []string   `json:"targets"`
+	Scanners   []string   `json:"scanners"`
+	StartedAt  time.Time  `json:"started_at"`
+	FinishedAt *time.Time `json:"finished_at,omitempty"`
+	Done       bool       `json:"done"`
+
+	Result *AggregatedReport `json:"result,omitempty"`
 }
