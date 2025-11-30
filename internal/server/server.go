@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kozlm/scanropods/internal/aggregator"
 	"github.com/kozlm/scanropods/internal/scanner"
 	"github.com/kozlm/scanropods/internal/store"
 )
@@ -71,12 +72,46 @@ func resultHandler(c *gin.Context) {
 	id := c.Param("id")
 	log.Printf("[resultHandler] fetching result for id=%s", id)
 
-	res, ok := store.GetResult(id)
+	status, ok := store.GetStatus(id)
 	if !ok {
-		log.Printf("[resultHandler] result not found or not ready for id=%s", id)
+		log.Printf("[resultHandler] status not found for id=%s", id)
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		return
+	}
+
+	if !status.Done {
+		log.Printf("[resultHandler] scan not ready for id=%s", id)
 		c.JSON(http.StatusNotFound, gin.H{"error": "not found or not ready"})
 		return
 	}
+
+	// if result built, reuse it:
+	if res, ok := store.GetResult(id); ok && res.Result != nil {
+		c.JSON(http.StatusOK, res)
+		return
+	}
+
+	agg, err := aggregator.Build(id, aggregator.BuilderConfig{
+		ZapCSVPath:    "/home/michal/GolandProjects/Scanropod/config/cwe-lists/zap-csv-fix.csv",
+		WapitiCSVPath: "/home/michal/GolandProjects/Scanropod/config/cwe-lists/wapiti-csv.csv",
+		NiktoCSVPath:  "/home/michal/GolandProjects/Scanropod/config/cwe-lists/nikto-csv-fix.csv",
+		NucleiCSVPath: "/home/michal/GolandProjects/Scanropod/config/cwe-lists/nuclei-csv.csv",
+	})
+	if err != nil {
+		log.Printf("[resultHandler] build aggregated report id=%s: %v", id, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to build report"})
+		return
+	}
+
+	res := status
+	now := time.Now()
+	res.FinishedAt = &now
+	res.Done = true
+	res.Result = &agg
+
+	store.SetStatus(id, res)
+	store.SetResult(id, res)
+
 	c.JSON(http.StatusOK, res)
 }
 

@@ -2,15 +2,12 @@ package scanner
 
 import (
 	"context"
-	"crypto/sha1"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -18,7 +15,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/kozlm/scanropods/internal/models"
 	"github.com/kozlm/scanropods/internal/store"
-	"github.com/zaproxy/zap-api-go/zap"
 )
 
 type ScanRequest = models.ScanRequest
@@ -110,12 +106,6 @@ func StartScan(req *ScanRequest) (string, error) {
 	ensureDir(scanReportsDir)
 	ensureDir(scanOutputsDir)
 
-	sr := models.ScanResult{
-		ID:        id,
-		StartedAt: time.Now(),
-	}
-	store.SetStatus(id, sr)
-
 	// context with cancel and per-scan dirs
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = context.WithValue(ctx, reportsDirCtxKey, scanReportsDir)
@@ -133,36 +123,31 @@ func StartScan(req *ScanRequest) (string, error) {
 	}
 	log.Printf("[StartScan] scanners to run: %v", scanners)
 
+	sr := models.ScanResult{
+		ID:        id,
+		Targets:   req.Targets,
+		Scanners:  scanners,
+		StartedAt: time.Now(),
+		Done:      false,
+	}
+	store.SetStatus(id, sr)
+
 	var wg sync.WaitGroup
-	// TODO deal with outCH
-	outCh := make(chan models.Vulnerability, 100)
 
 	for _, sc := range scanners {
 		wg.Add(1)
 		go func(scannerName string) {
 			defer wg.Done()
 			log.Printf("[StartScan] starting scanner: %s", scannerName)
-			runSingleScanner(ctx, scannerName, req.Targets, outCh)
+			runSingleScanner(ctx, scannerName, req.Targets)
 			log.Printf("[StartScan] scanner finished: %s", scannerName)
 		}(sc)
 	}
 
-	// collector: waits for scanners to finish and then closes channel
-	go func() {
-		wg.Wait()
-		close(outCh)
-		log.Printf("[StartScan] all scanners completed, outCh closed")
-	}()
-
-	vulns := make([]models.Vulnerability, 0)
-	for range outCh {
-
-	}
-
 	r := sr
-	r.Vulnerabilities = vulns
 	now := time.Now()
 	r.FinishedAt = &now
+	r.Done = true
 
 	store.SetResult(id, r)
 	store.SetStatus(id, r)
@@ -192,7 +177,7 @@ func StopScan(id string) error {
 	return fmt.Errorf("no active scan with id %s", id)
 }
 
-func runSingleScanner(ctx context.Context, name string, targets []string, _ chan<- models.Vulnerability) {
+func runSingleScanner(ctx context.Context, name string, targets []string) {
 	log.Printf("[runSingleScanner] starting scanner '%s' on targets: %v", name, targets)
 
 	switch strings.ToLower(name) {
@@ -224,7 +209,7 @@ func runNikto(ctx context.Context, targets []string) {
 		"msgs", "sitefiles", "clientaccesspolicy", "multiple_index",
 		"shellshock", "strutschock", "apache_expect_xss", "put_del_test", "report_json",
 	}
-	pluginArg := strings.Join(plugins, ",")
+	pluginArg := "\"" + strings.Join(plugins, ";") + "\""
 
 	for _, t := range targets {
 		select {
@@ -256,8 +241,8 @@ func runNikto(ctx context.Context, targets []string) {
 			"-Plugins", pluginArg,
 			"-ask", "no",
 			"-nointeractive",
-			"-o", reportFile, // report file
-			"-Format", "json", // format json
+			"-o", reportFile,
+			"-Format", "json",
 		)
 
 		output, err := cmd.CombinedOutput()
@@ -312,7 +297,7 @@ func runNuclei(ctx context.Context, targets []string) {
 			"-duc",
 			"-ni",
 			"-config", nucleiConfigPath,
-			"-json-export", reportFile, // report file via nuclei mechanism
+			"-json-export", reportFile,
 		)
 
 		output, err := cmd.CombinedOutput()
@@ -377,7 +362,7 @@ func runWapiti(ctx context.Context, targets []string) {
 			"-u", t,
 			"--scope", "folder",
 			"-f", "json",
-			"-o", reportFile, // report path via wapiti mechanism
+			"-o", reportFile,
 		)
 
 		output, err := cmd.CombinedOutput()
@@ -398,153 +383,61 @@ func runWapiti(ctx context.Context, targets []string) {
 // --- ZAP ---
 
 func runZap(ctx context.Context, targets []string) {
-	log.Printf("[runZap] starting for targets: %v", targets)
-
-	reportDir := reportsDirFromCtx(ctx)
-
-	cfg := &zap.Config{
-		Base:      "http://127.0.0.1:8080/JSON/",
-		BaseOther: "http://127.0.0.1:8080/OTHER/",
-		Proxy:     zap.DefaultProxy,
-	}
-
-	client, err := zap.NewClient(cfg)
-	if err != nil {
-		log.Fatalf("[runZap] failed to create zap client: %v", err)
-	}
-
-	core := client.Core()
-	ascan := client.Ascan()
-	pscan := client.Pscan()
-
-	// enable passive scanner and allow it to scan
-	if _, err := pscan.SetEnabled("true"); err != nil {
-		log.Fatalf("[runZap] failed to enable passive scanner: %v", err)
-	}
-	if _, err := pscan.SetScanOnlyInScope("false"); err != nil {
-		log.Fatalf("[runZap] failed to configure passive scanner scope: %v", err)
-	}
-
-	// enable all active scan rules
-	if _, err := ascan.EnableAllScanners(""); err != nil {
-		log.Fatalf("[runZap] failed to enable all scanners: %v", err)
-	}
-
-	// iterate over all targets
-	for _, target := range targets {
-		log.Printf("[runZap] === ZAP scan for target: %s ===", target)
-
-		select {
-		case <-ctx.Done():
-			log.Printf("[runZap] context cancelled, stopping. Last target: %s", target)
-			return
-		default:
-		}
-
-		// 1) access URL once so passive scanner can start
-		log.Printf("[runZap] Requesting URL for passive scan: %s", target)
-		if _, err := core.AccessUrl(target, "true"); err != nil {
-			log.Fatalf("[runZap] failed to access url %s: %v", target, err)
-		}
-
-		// 2) wait for passive scanner to finish
-		for {
-			select {
-			case <-ctx.Done():
-				log.Printf("[runZap] context cancelled while waiting for passive scan (target: %s)", target)
-				return
-			default:
-			}
-
-			rec, err := pscan.RecordsToScan()
-			if err != nil {
-				log.Fatalf("[runZap] failed to check passive scan queue: %v", err)
-			}
-			leftStr := fmt.Sprint(rec["recordsToScan"])
-			left, err := strconv.Atoi(leftStr)
-			if err != nil {
-				log.Fatalf("[runZap] failed to parse recordsToScan (%s): %v", leftStr, err)
-			}
-			log.Printf("[runZap] Passive scanner queue: %d records left", left)
-			if left == 0 {
-				break
-			}
-			time.Sleep(2 * time.Second)
-		}
-
-		// 3) start active scan for URL
-		log.Printf("[runZap] Starting active scan on: %s", target)
-		resp, err := ascan.Scan(
-			target,
-			"false", // no recurse
-			"false", // no scope restriction
-			"",      // default policy (all rules)
-			"",      // any method
-			"",      // no post data
-			"",      // no context
-		)
-		if err != nil {
-			log.Fatalf("[runZap] failed to start active scan for %s: %v", target, err)
-		}
-
-		scanID, ok := resp["scan"].(string)
-		if !ok {
-			log.Fatalf("[runZap] active scan started but could not get scan id from response: %#v", resp)
-		}
-		log.Printf("[runZap] Active scan id for %s: %s", target, scanID)
-
-		// 4) get scan status until 100%
-		for {
-			select {
-			case <-ctx.Done():
-				log.Printf("[runZap] context cancelled while waiting for active scan (target: %s)", target)
-				return
-			default:
-			}
-
-			statusMap, err := ascan.Status(scanID)
-			if err != nil {
-				log.Fatalf("[runZap] failed to get ascan status for %s: %v", target, err)
-			}
-			statusStr := fmt.Sprint(statusMap["status"])
-			percent, err := strconv.Atoi(statusStr)
-			if err != nil {
-				log.Fatalf("[runZap] failed to parse ascan status (%s): %v", statusStr, err)
-			}
-			log.Printf("[runZap] Active scan progress for %s: %d%%", target, percent)
-			if percent >= 100 {
-				break
-			}
-			time.Sleep(2 * time.Second)
-		}
-
-		log.Printf("[runZap] Active scan complete for %s", target)
-	}
-
-	// generate JSON report
-	log.Println("[runZap] Generating ZAP JSON report for all targets...")
-
-	report, err := client.Core().Jsonreport()
-	if err != nil {
-		log.Fatalf("[runZap] failed to generate ZAP JSON report: %v", err)
-	}
-
-	filename := filepath.Join(reportDir, fmt.Sprintf("zap-%d.json", time.Now().Unix()))
-	if err := os.WriteFile(filename, report, 0o644); err != nil {
-		log.Fatalf("[runZap] failed to write ZAP JSON report file %s: %v", filename, err)
-	}
-
-	log.Printf("[runZap] ZAP JSON report saved to %s", filename)
-}
-
-// TODO remove fingerprint
-func fingerprint(v models.Vulnerability) string {
-	log.Printf("[fingerprint] generating fingerprint for tool=%s title=%s url=%s", v.Tool, v.Title, v.URL)
-
-	h := sha1.New()
-	h.Write([]byte(v.Tool + "|" + v.Title + "|" + v.URL))
-	fp := hex.EncodeToString(h.Sum(nil))
-
-	log.Printf("[fingerprint] result: %s", fp)
-	return fp
+	//log.Printf("[runZap] starting for targets: %v", targets)
+	//
+	//reportDir := reportsDirFromCtx(ctx)
+	//outputDir := outputsDirFromCtx(ctx)
+	//
+	//zapScriptPath := "zap-baseline.py"
+	//
+	//for _, target := range targets {
+	//	select {
+	//	case <-ctx.Done():
+	//		log.Printf("[runZap] context cancelled before starting target: %s", target)
+	//		return
+	//	default:
+	//	}
+	//
+	//	safeTarget := sanitizeFilename(target)
+	//	ts := time.Now().Unix()
+	//
+	//	reportFile := filepath.Join(reportDir, fmt.Sprintf("zap-%s-%d.json", safeTarget, ts))
+	//	outputFile := filepath.Join(outputDir, fmt.Sprintf("zap-%s-%d.log", safeTarget, ts))
+	//
+	//	args := []string{
+	//		"-t", target,
+	//		"-J", reportFile,
+	//	}
+	//
+	//	log.Printf("[runZap] running ZAP CLI for target: %s -> report: %s, output: %s",
+	//		target, reportFile, outputFile)
+	//
+	//	cmd := exec.CommandContext(ctx, zapScriptPath, args...)
+	//	cmd.Env = os.Environ()
+	//
+	//	outBytes, err := cmd.CombinedOutput()
+	//
+	//	if writeErr := os.WriteFile(outputFile, outBytes, 0o644); writeErr != nil {
+	//		log.Printf("[runZap] failed to write zap output for %s to %s: %v", target, outputFile, writeErr)
+	//	} else {
+	//		log.Printf("[runZap] zap output written for %s: %s", target, outputFile)
+	//	}
+	//
+	//	if err != nil {
+	//		if ctx.Err() != nil {
+	//			log.Printf("[runZap] zap command for %s stopped due to context cancellation", target)
+	//			return
+	//		}
+	//		log.Printf("[runZap] error running zap for %s: %v (see %s for details)", target, err, outputFile)
+	//		continue
+	//	}
+	//
+	//	if _, err := os.Stat(reportFile); err == nil {
+	//		log.Printf("[runZap] zap JSON report saved to %s", reportFile)
+	//	} else {
+	//		log.Printf("[runZap] zap did not produce JSON report for %s (expected: %s): %v", target, reportFile, err)
+	//	}
+	//}
+	//
+	//log.Printf("[runZap] completed CLI runs for all targets")
 }

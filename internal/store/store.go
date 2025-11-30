@@ -2,7 +2,6 @@ package store
 
 import (
 	"sync"
-	"time"
 
 	"github.com/kozlm/scanropods/internal/models"
 )
@@ -44,13 +43,4 @@ func GetResult(id string) (models.ScanResult, bool) {
 	defer mu.RUnlock()
 	r, ok := results[id]
 	return r, ok
-}
-
-func MarkFinished(id string) {
-	mu.Lock()
-	defer mu.Unlock()
-	r := results[id]
-	now := time.Now()
-	r.FinishedAt = &now
-	results[id] = r
 }

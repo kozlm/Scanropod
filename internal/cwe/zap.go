@@ -2,9 +2,7 @@ package cwe
 
 import (
 	"encoding/csv"
-	"errors"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 )
