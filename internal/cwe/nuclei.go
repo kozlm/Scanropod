@@ -2,8 +2,7 @@ package cwe
 
 import (
 	"encoding/csv"
-	"errors"
-	"log"
+	"fmt"
 	"os"
 	"strings"
 )
@@ -14,8 +13,7 @@ func LoadNucleiMap(path string) (NucleiMap, error) {
 	// CSV columns: id,cwe
 	file, err := os.Open(path)
 	if err != nil {
-		log.Printf("[LoadNucleiMap] open nuclei map '%s': %v", path, err)
-		return nil, errors.New("failed to read nuclei map file")
+		return nil, fmt.Errorf("read nuclei map file: %w", err)
 	}
 	defer file.Close()
 
@@ -23,8 +21,7 @@ func LoadNucleiMap(path string) (NucleiMap, error) {
 
 	records, err := reader.ReadAll()
 	if err != nil {
-		log.Printf("[LoadNucleiMap] parse nuclei csv: %v", err)
-		return nil, errors.New("failed to parse nuclei csv")
+		return nil, fmt.Errorf("parse nuclei csv: %w", err)
 	}
 
 	out := make(NucleiMap)

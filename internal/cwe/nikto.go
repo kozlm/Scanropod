@@ -2,8 +2,7 @@ package cwe
 
 import (
 	"encoding/csv"
-	"errors"
-	"log"
+	"fmt"
 	"os"
 	"strings"
 )
@@ -14,8 +13,7 @@ func LoadNiktoMap(path string) (NiktoMap, error) {
 	// CSV columns: id,cwe
 	file, err := os.Open(path)
 	if err != nil {
-		log.Printf("[LoadNiktoMap] open nikto map '%s': %v", path, err)
-		return nil, errors.New("failed to read nikto map file")
+		return nil, fmt.Errorf("read nikto map file: %w", err)
 	}
 	defer file.Close()
 
@@ -23,8 +21,7 @@ func LoadNiktoMap(path string) (NiktoMap, error) {
 
 	records, err := reader.ReadAll()
 	if err != nil {
-		log.Printf("[LoadNiktoMap] parse nikto csv: %v", err)
-		return nil, errors.New("failed to parse nikto csv")
+		return nil, fmt.Errorf("parse nikto csv: %w", err)
 	}
 
 	out := make(NiktoMap)

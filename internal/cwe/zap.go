@@ -3,6 +3,7 @@ package cwe
 import (
 	"encoding/csv"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -14,8 +15,7 @@ func LoadZapMap(path string) (ZapMap, error) {
 	// CSV columns: id,cwe
 	file, err := os.Open(path)
 	if err != nil {
-		log.Printf("[LoadZapMap] open zap map '%s': %v", path, err)
-		return nil, errors.New("failed to read zap map file")
+		return nil, fmt.Errorf("read zap map file: %w", err)
 	}
 	defer file.Close()
 
@@ -23,8 +23,7 @@ func LoadZapMap(path string) (ZapMap, error) {
 
 	records, err := reader.ReadAll()
 	if err != nil {
-		log.Printf("[LoadZapMap] parse zap csv: %v", err)
-		return nil, errors.New("failed to parse zap csv")
+		return nil, fmt.Errorf("parse zap csv: %w", err)
 	}
 
 	out := make(ZapMap)

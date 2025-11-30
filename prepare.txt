@@ -1,4 +1,6 @@
-sudo snap install zaproxy --classic
+wget https://github.com/zaproxy/zaproxy/releases/download/v2.16.1/ZAP_2.16.1_Linux.tar.gz
+tar xvf ZAP_2.16.1_Linux.tar.gz
+sudo ln -s /usr/local/share/zaproxy/zap.sh /usr/local/bin/zap
 
 cd /usr/local/share/
 sudo git clone --branch v2.5.0 --depth 1 https://github.com/sullo/nikto.git

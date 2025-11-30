@@ -3,6 +3,7 @@ package cwe
 import (
 	"encoding/csv"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -22,8 +23,7 @@ func LoadWapitiMap(path string) (*WapitiMap, error) {
 	// CSV columns: name,cwe,keyphrase
 	f, err := os.Open(path)
 	if err != nil {
-		log.Printf("[LoadWapitiMap] open wapiti map '%s': %v", path, err)
-		return nil, errors.New("failed to read wapiti map file")
+		return nil, fmt.Errorf("read wapiti map file: %w", err)
 	}
 	defer f.Close()
 
@@ -31,8 +31,7 @@ func LoadWapitiMap(path string) (*WapitiMap, error) {
 
 	records, err := reader.ReadAll()
 	if err != nil {
-		log.Printf("[LoadWapitiMap] parse wapit csv: %v", err)
-		return nil, errors.New("failed to parse wapiti csv")
+		return nil, fmt.Errorf("parse wapiti csv: %w", err)
 	}
 
 	m := &WapitiMap{
