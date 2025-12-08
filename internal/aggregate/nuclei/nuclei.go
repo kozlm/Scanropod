@@ -9,7 +9,8 @@ import (
 	"strings"
 
 	"github.com/kozlm/scanropods/internal/cwe"
-	"github.com/kozlm/scanropods/internal/models"
+	"github.com/kozlm/scanropods/internal/helper"
+	"github.com/kozlm/scanropods/internal/model"
 )
 
 type Result struct {
@@ -20,9 +21,10 @@ type Result struct {
 	Info json.RawMessage `json:"info"` // raw blob, untouched
 	Type string          `json:"type"`
 
-	Host string `json:"host"`
-	Port string `json:"port"`
-	URL  string `json:"url"`
+	Host      string `json:"host"`
+	Port      string `json:"port"`
+	URL       string `json:"url"`
+	MatchedAt string `json:"matched-at"`
 
 	Request string `json:"request"`
 }
@@ -36,7 +38,7 @@ type NucleiFindingPayload struct {
 }
 
 // ParseReports reads all Nuclei JSON files for given scanID
-func ParseReports(scanID, nucleiCSVPath string) ([]models.NormalizedFinding, error) {
+func ParseReports(scanID, nucleiCSVPath string) ([]model.NormalizedFinding, error) {
 	nm, err := cwe.LoadNucleiMap(nucleiCSVPath)
 	if err != nil {
 		return nil, fmt.Errorf("load nuclei cwe map: %w", err)
@@ -48,7 +50,7 @@ func ParseReports(scanID, nucleiCSVPath string) ([]models.NormalizedFinding, err
 		return nil, fmt.Errorf("read reports dir: %w", err)
 	}
 
-	var out []models.NormalizedFinding
+	var out []model.NormalizedFinding
 
 	for _, e := range entries {
 		if e.IsDir() {
@@ -74,7 +76,7 @@ func isNucleiReportFile(name string) bool {
 	return filepath.Ext(name) == ".json" && strings.HasPrefix(name, "nuclei-")
 }
 
-func parseSingleReport(path string, nm cwe.NucleiMap) ([]models.NormalizedFinding, error) {
+func parseSingleReport(path string, nm cwe.NucleiMap) ([]model.NormalizedFinding, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -98,20 +100,12 @@ func parseSingleReport(path string, nm cwe.NucleiMap) ([]models.NormalizedFindin
 		}
 	}
 
-	var findings []models.NormalizedFinding
+	var findings []model.NormalizedFinding
 
 	for _, r := range arr {
-		targetURL := r.URL
-		if strings.TrimSpace(targetURL) == "" {
-			if r.Host != "" {
-				if r.Port != "" {
-					targetURL = "http://" + r.Host + ":" + r.Port
-				} else {
-					targetURL = "http://" + r.Host
-				}
-			} else {
-				targetURL = "unknown"
-			}
+		targetUrl, err := helper.CleanUrl(r.MatchedAt)
+		if err != nil {
+			return nil, fmt.Errorf("clean nuclei targetUrl: %w", err)
 		}
 
 		cweID := nm[r.TemplateID]
@@ -127,10 +121,10 @@ func parseSingleReport(path string, nm cwe.NucleiMap) ([]models.NormalizedFindin
 			URL:        r.URL,
 		}
 
-		findings = append(findings, models.NormalizedFinding{
-			TargetURL: targetURL,
+		findings = append(findings, model.NormalizedFinding{
+			TargetURL: targetUrl,
 			CWEID:     cweID,
-			Scanner:   models.ScannerNuclei,
+			Scanner:   model.ScannerNuclei,
 			Payload:   payload,
 		})
 	}

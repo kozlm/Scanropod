@@ -1,0 +1,39 @@
+- Nikto v2.5.0
+---------------------------------------------------------------------------
++ Target IP:          192.168.55.106
++ Target Hostname:    192.168.55.106
++ Target Port:        80
++ Start Time:         2025-12-07 02:15:40 (GMT1)
+---------------------------------------------------------------------------
++ Server: Apache/2.4.62 (Debian)
++ /DVWA/: Cookie security created without the httponly flag. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
++ /DVWA/: Cookie PHPSESSID created without the httponly flag. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
++ /DVWA/: The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type. See: https://www.netsparker.com/web-vulnerability-scanner/vulnerabilities/missing-content-type-header/
++ No CGI Directories found (use '-C all' to force check all possible dirs)
++ /DVWA/: Suggested security header missing: strict-transport-security. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
++ /DVWA/: Suggested security header missing: content-security-policy. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
++ /DVWA/: Suggested security header missing: referrer-policy. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
++ /DVWA/: Suggested security header missing: x-content-type-options. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
++ /DVWA/: Suggested security header missing: permissions-policy. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy
++ OPTIONS: Allowed HTTP Methods: GET, POST, OPTIONS, HEAD .
++ /: Web Server returns a valid response with junk HTTP methods which may cause false positives.
++ /DVWA/phpinfo.php: Output from the phpinfo() function was found.
++ /DVWA/config/: Directory indexing found.
++ /DVWA/config/: Configuration information may be available remotely.
++ /DVWA/?=PHPB8B5F2A0-3C92-11d3-A3A9-4C7B08C10000: PHP reveals potentially sensitive information via certain HTTP requests that contain specific QUERY strings. See: OSVDB-12184
++ /DVWA/tests/: Directory indexing found.
++ /DVWA/tests/: This might be interesting.
++ /DVWA/database/: Directory indexing found.
++ /DVWA/database/: Database directory found.
++ /DVWA/phpinfo.php: PHP is installed, and a test script which runs phpinfo() was found. This gives a lot of system information. See: CWE-552
++ /DVWA/docs/: Directory indexing found.
++ /DVWA/login.php: Admin login page/section found.
++ /DVWA/.git/index: Git Index file may contain directory listing information.
++ /DVWA/.git/HEAD: Git HEAD file found. Full repo details may be present.
++ /DVWA/.git/config: Git config file found. Infos about repo details may be present.
++ /DVWA/.gitignore: .gitignore file found. It is possible to grasp the directory structure.
++ /DVWA/.dockerignore: .dockerignore file found. It may be possible to grasp the directory structure and learn more about the site.
++ 8052 requests: 0 error(s) and 26 item(s) reported on remote host
++ End Time:           2025-12-07 02:16:27 (GMT1) (47 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested

@@ -1,27 +1,36 @@
-# zap.yaml - minimal automation plan: passive wait -> active scan (no spider) -> json report
 env:
+  vars:
+    targetUrl: "${SCANROPOD_TARGET_URL}"
+    reportDir: "${SCANROPOD_REPORT_DIR}"
+    reportFile: "${SCANROPOD_REPORT_FILE}"
   contexts:
-    - name: "context 1"
-      urls: ["http://192.168.0.156/DVWA"]
+    - name: "contextone"
+      urls: ["${targetUrl}"]
       includePaths: []
       excludePaths: []
   parameters:
     failOnError: true
+    failOnWarning: false
     progressToStdout: true
 
 jobs:
+  # spider folder
+  - type: spider
+    parameters:
+      maxDepth: 1
+      maxChildren: 1
+      postForm: true
+  # passive scan
   - type: passiveScan-config
     parameters:
       scanOnlyInScope: true
-  # 2) wait for passive scanner queue to finish
   - type: passiveScan-wait
-
-  # 3) active scan of the single target (no spider)
+  # active scan
+  - type: activeScan-config
   - type: activeScan
-
-  # 4) write JSON report
+  # report
   - type: report
     parameters:
       template: "traditional-json"
-      reportFile: "zap-report"
-      reportDir: "/home/michal"
+      reportFile: "${reportFile}"
+      reportDir: "${reportDir}"

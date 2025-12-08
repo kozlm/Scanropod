@@ -13,11 +13,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/kozlm/scanropods/internal/models"
+	"github.com/kozlm/scanropods/internal/helper"
+	"github.com/kozlm/scanropods/internal/model"
 	"github.com/kozlm/scanropods/internal/store"
 )
 
-type ScanRequest = models.ScanRequest
+type ScanRequest = model.ScanRequest
 
 // base directories:
 //
@@ -26,12 +27,13 @@ type ScanRequest = models.ScanRequest
 var (
 	baseOutputsDir   = "/home/michal/GolandProjects/Scanropod/outputs"
 	baseReportsDir   = "/home/michal/GolandProjects/Scanropod/reports"
-	nucleiConfigPath = "/home/michal/GolandProjects/Scanropod/configs/nuclei/nuclei-config.yaml"
+	nucleiConfigPath = "/home/michal/GolandProjects/Scanropod/config/nuclei/nuclei-config.yaml"
+	zapConfigPath    = "/home/michal/GolandProjects/Scanropod/config/zap/zap-config.yaml"
 
 	activeCancel = struct {
 		sync.Mutex
-		m map[string]context.CancelFunc
-	}{m: make(map[string]context.CancelFunc)}
+		cancelMap map[string]context.CancelFunc
+	}{cancelMap: make(map[string]context.CancelFunc)}
 )
 
 type ctxKey string
@@ -40,31 +42,6 @@ const (
 	reportsDirCtxKey ctxKey = "reportsDir"
 	outputsDirCtxKey ctxKey = "outputsDir"
 )
-
-// ensureDir makes sure given directory exists
-func ensureDir(dir string) {
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		log.Printf("[scanner] failed to create dir %s: %v", dir, err)
-	}
-}
-
-// sanitizeFilename makes URL safe for use as filename
-func sanitizeFilename(s string) string {
-	s = strings.TrimSpace(s)
-	if s == "" {
-		return "unknown"
-	}
-	r := strings.NewReplacer(
-		"://", "_",
-		":", "_",
-		"/", "_",
-		"?", "_",
-		"&", "_",
-		"=", "_",
-		" ", "_",
-	)
-	return r.Replace(s)
-}
 
 func reportsDirFromCtx(ctx context.Context) string {
 	if v := ctx.Value(reportsDirCtxKey); v != nil {
@@ -101,10 +78,10 @@ func StartScan(req *ScanRequest) (string, error) {
 		id, scanReportsDir, scanOutputsDir)
 
 	// ensure base and per-scan dirs
-	ensureDir(baseReportsDir)
-	ensureDir(baseOutputsDir)
-	ensureDir(scanReportsDir)
-	ensureDir(scanOutputsDir)
+	helper.EnsureDir(baseReportsDir)
+	helper.EnsureDir(baseOutputsDir)
+	helper.EnsureDir(scanReportsDir)
+	helper.EnsureDir(scanOutputsDir)
 
 	// context with cancel and per-scan dirs
 	ctx, cancel := context.WithCancel(context.Background())
@@ -112,7 +89,7 @@ func StartScan(req *ScanRequest) (string, error) {
 	ctx = context.WithValue(ctx, outputsDirCtxKey, scanOutputsDir)
 
 	activeCancel.Lock()
-	activeCancel.m[id] = cancel
+	activeCancel.cancelMap[id] = cancel
 	activeCancel.Unlock()
 	log.Printf("[StartScan] context and cancel stored for scan ID: %s", id)
 
@@ -123,7 +100,7 @@ func StartScan(req *ScanRequest) (string, error) {
 	}
 	log.Printf("[StartScan] scanners to run: %v", scanners)
 
-	sr := models.ScanResult{
+	sr := model.ScanResult{
 		ID:        id,
 		Targets:   req.Targets,
 		Scanners:  scanners,
@@ -154,7 +131,7 @@ func StartScan(req *ScanRequest) (string, error) {
 
 	// cleanup
 	activeCancel.Lock()
-	delete(activeCancel.m, id)
+	delete(activeCancel.cancelMap, id)
 	activeCancel.Unlock()
 	log.Printf("[StartScan] scan %s finished and removed from activeCancel map", id)
 
@@ -167,9 +144,9 @@ func StopScan(id string) error {
 
 	activeCancel.Lock()
 	defer activeCancel.Unlock()
-	if cancel, ok := activeCancel.m[id]; ok {
+	if cancel, ok := activeCancel.cancelMap[id]; ok {
 		cancel()
-		delete(activeCancel.m, id)
+		delete(activeCancel.cancelMap, id)
 		log.Printf("[StopScan] cancelled and removed scan id: %s", id)
 		return nil
 	}
@@ -209,7 +186,7 @@ func runNikto(ctx context.Context, targets []string) {
 		"msgs", "sitefiles", "clientaccesspolicy", "multiple_index",
 		"shellshock", "strutschock", "apache_expect_xss", "put_del_test", "report_json",
 	}
-	pluginArg := "\"" + strings.Join(plugins, ";") + "\""
+	pluginArg := strings.Join(plugins, ";")
 
 	for _, t := range targets {
 		select {
@@ -219,7 +196,7 @@ func runNikto(ctx context.Context, targets []string) {
 		default:
 		}
 
-		safeTarget := sanitizeFilename(t)
+		safeTarget := helper.SanitizeFilename(t)
 
 		reportFile := filepath.Join(
 			reportDir,
@@ -276,7 +253,7 @@ func runNuclei(ctx context.Context, targets []string) {
 		default:
 		}
 
-		safeTarget := sanitizeFilename(t)
+		safeTarget := helper.SanitizeFilename(t)
 
 		reportFile := filepath.Join(
 			reportDir,
@@ -340,7 +317,7 @@ func runWapiti(ctx context.Context, targets []string) {
 		default:
 		}
 
-		safeTarget := sanitizeFilename(t)
+		safeTarget := helper.SanitizeFilename(t)
 
 		reportFile := filepath.Join(
 			reportDir,
@@ -360,7 +337,7 @@ func runWapiti(ctx context.Context, targets []string) {
 			"--flush-session",
 			"-m", modArg,
 			"-u", t,
-			"--scope", "folder",
+			"--scope", "page",
 			"-f", "json",
 			"-o", reportFile,
 		)
@@ -383,61 +360,59 @@ func runWapiti(ctx context.Context, targets []string) {
 // --- ZAP ---
 
 func runZap(ctx context.Context, targets []string) {
-	//log.Printf("[runZap] starting for targets: %v", targets)
-	//
-	//reportDir := reportsDirFromCtx(ctx)
-	//outputDir := outputsDirFromCtx(ctx)
-	//
-	//zapScriptPath := "zap-baseline.py"
-	//
-	//for _, target := range targets {
-	//	select {
-	//	case <-ctx.Done():
-	//		log.Printf("[runZap] context cancelled before starting target: %s", target)
-	//		return
-	//	default:
-	//	}
-	//
-	//	safeTarget := sanitizeFilename(target)
-	//	ts := time.Now().Unix()
-	//
-	//	reportFile := filepath.Join(reportDir, fmt.Sprintf("zap-%s-%d.json", safeTarget, ts))
-	//	outputFile := filepath.Join(outputDir, fmt.Sprintf("zap-%s-%d.log", safeTarget, ts))
-	//
-	//	args := []string{
-	//		"-t", target,
-	//		"-J", reportFile,
-	//	}
-	//
-	//	log.Printf("[runZap] running ZAP CLI for target: %s -> report: %s, output: %s",
-	//		target, reportFile, outputFile)
-	//
-	//	cmd := exec.CommandContext(ctx, zapScriptPath, args...)
-	//	cmd.Env = os.Environ()
-	//
-	//	outBytes, err := cmd.CombinedOutput()
-	//
-	//	if writeErr := os.WriteFile(outputFile, outBytes, 0o644); writeErr != nil {
-	//		log.Printf("[runZap] failed to write zap output for %s to %s: %v", target, outputFile, writeErr)
-	//	} else {
-	//		log.Printf("[runZap] zap output written for %s: %s", target, outputFile)
-	//	}
-	//
-	//	if err != nil {
-	//		if ctx.Err() != nil {
-	//			log.Printf("[runZap] zap command for %s stopped due to context cancellation", target)
-	//			return
-	//		}
-	//		log.Printf("[runZap] error running zap for %s: %v (see %s for details)", target, err, outputFile)
-	//		continue
-	//	}
-	//
-	//	if _, err := os.Stat(reportFile); err == nil {
-	//		log.Printf("[runZap] zap JSON report saved to %s", reportFile)
-	//	} else {
-	//		log.Printf("[runZap] zap did not produce JSON report for %s (expected: %s): %v", target, reportFile, err)
-	//	}
-	//}
-	//
-	//log.Printf("[runZap] completed CLI runs for all targets")
+	log.Printf("[runZap] starting for targets: %v", targets)
+
+	reportDir := reportsDirFromCtx(ctx)
+	outputDir := outputsDirFromCtx(ctx)
+
+	for _, target := range targets {
+		select {
+		case <-ctx.Done():
+			log.Printf("[runZap] context cancelled, stopping. Last target: %s", target)
+			return
+		default:
+		}
+
+		safeTarget := helper.SanitizeFilename(target)
+
+		reportFileName := fmt.Sprintf("zap-%s-%d.json", safeTarget, time.Now().Unix())
+
+		reportFile := filepath.Join(
+			reportDir,
+			reportFileName,
+		)
+		outputFile := filepath.Join(
+			outputDir,
+			fmt.Sprintf("zap-%s-%d.log", safeTarget, time.Now().Unix()),
+		)
+
+		log.Printf("[runZap] scanning target: %s -> report: %s, output: %s",
+			target, reportFile, outputFile)
+
+		cmd := exec.CommandContext(
+			ctx,
+			"zap",
+			"-cmd",
+			"-autorun", zapConfigPath,
+		)
+		env := os.Environ()
+		env = append(env, "SCANROPOD_TARGET_URL="+target)
+		env = append(env, "SCANROPOD_REPORT_DIR="+reportDir)
+		env = append(env, "SCANROPOD_REPORT_FILE="+reportFileName)
+		cmd.Env = env
+
+		output, err := cmd.CombinedOutput()
+
+		if err != nil {
+			log.Printf("[runZap] error running zap for %s: %v (output: %s)", target, err, string(output))
+		}
+
+		if writeErr := os.WriteFile(outputFile, output, 0o644); writeErr != nil {
+			log.Printf("[runZap] failed to write zap output for %s to %s: %v", target, outputFile, writeErr)
+		} else {
+			log.Printf("[runZap] zap output written for %s: %s", target, outputFile)
+		}
+	}
+
+	log.Printf("[runZap] completed for all targets")
 }

@@ -1,4 +1,12 @@
-- wapiti - done; modules, only one page
-- nikto - done; everything, can't specify pages
-- nuclei - done; disable interactsh server for OAST testing, exclude OAST based templates, see config
-- zap - done; active and passive, no spider
+- wapiti - modules, only one page; target up to first /, then path in each vuln
+- nikto - everything, can't specify pages; scheme from file -> host field -> if port not 443, 80 then port -> url field in vulns
+- nuclei - disable interactsh server for OAST testing, exclude OAST based templates; url field
+- zap - weird spider; uri in instances
+
+TODO
+- fix spider
+- fix urls in nikto, wapiti, zap, nuclei
+- fix response
+- make paths ambiguous
+- add check if report made
+- --no-informational??

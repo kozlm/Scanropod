@@ -1,0 +1,26 @@
+Found Java version 21.0.9
+Available memory: 31731 MB
+Using JVM args: -Xmx7932m
+Job spider set maxDepth = 1
+Job spider set maxChildren = 1
+Job spider set postForm = true
+Job passiveScan-config set scanOnlyInScope = true
+Job report set template = traditional-json
+Job report set reportFile = ${reportFile}
+Job report set reportDir = ${reportDir}
+Job spider started
+Job spider requesting URL http://192.168.0.227:3000/
+Job spider found 13 URLs
+Job spider finished, time taken: 00:00:01
+Job passiveScan-config started
+Job passiveScan-config finished, time taken: 00:00:00
+Job passiveScan-wait started
+Job passiveScan-wait finished, time taken: 00:00:02
+Job activeScan-config started
+Job activeScan-config finished, time taken: 00:00:00
+Job activeScan started
+Job activeScan finished, time taken: 00:26:00
+Job report started
+Job report generated report /home/michal/GolandProjects/Scanropod/reports/9831d909-966a-449c-a1a0-aebcdcc3aa58/zap-http_192.168.0.227_3000_-1765206867.json
+Job report finished, time taken: 00:00:00
+Automation plan succeeded!

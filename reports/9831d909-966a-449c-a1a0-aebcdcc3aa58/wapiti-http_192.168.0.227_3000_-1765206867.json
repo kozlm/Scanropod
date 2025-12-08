@@ -494,14 +494,14 @@
     "Content Security Policy Configuration": [
       {
         "method": "GET",
-        "path": "/DVWA/vulnerabilities/xss_r",
-        "info": "CSP is not set for URL: http://192.168.0.156/DVWA/vulnerabilities/xss_r",
+        "path": "/",
+        "info": "CSP is not set for URL: http://192.168.0.227:3000/",
         "level": 1,
         "parameter": null,
         "referer": "",
         "module": "csp",
-        "http_request": "GET /DVWA/vulnerabilities/xss_r HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "curl_command": "curl \"http://192.168.0.156/DVWA/vulnerabilities/xss_r\"",
+        "http_request": "GET / HTTP/1.1\nhost: 192.168.0.227:3000\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "curl_command": "curl \"http://192.168.0.227:3000/\"",
         "wstg": [
           "WSTG-CONF-12",
           "OSHP-Content-Security-Policy"
@@ -516,108 +516,21 @@
     "Fingerprint web server": [],
     "Htaccess Bypass": [],
     "HTML Injection": [],
-    "Clickjacking Protection": [
-      {
-        "method": "GET",
-        "path": "/DVWA/vulnerabilities/xss_r",
-        "info": "X-Frame-Options is not set",
-        "level": 1,
-        "parameter": null,
-        "referer": "",
-        "module": "http_headers",
-        "http_request": "GET /DVWA/vulnerabilities/xss_r HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "curl_command": "curl \"http://192.168.0.156/DVWA/vulnerabilities/xss_r\"",
-        "wstg": [
-          "OSHP-X-Frame-Options"
-        ]
-      }
-    ],
+    "Clickjacking Protection": [],
     "HTTP Strict Transport Security (HSTS)": [],
-    "MIME Type Confusion": [
-      {
-        "method": "GET",
-        "path": "/DVWA/vulnerabilities/xss_r",
-        "info": "X-Content-Type-Options is not set",
-        "level": 1,
-        "parameter": null,
-        "referer": "",
-        "module": "http_headers",
-        "http_request": "GET /DVWA/vulnerabilities/xss_r HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "curl_command": "curl \"http://192.168.0.156/DVWA/vulnerabilities/xss_r\"",
-        "wstg": [
-          "OSHP-X-Content-Type-Options"
-        ]
-      }
-    ],
-    "HttpOnly Flag cookie": [
-      {
-        "method": "GET",
-        "path": "/DVWA/vulnerabilities/xss_r/",
-        "info": "HttpOnly flag is not set on the cookie 'security' set at 'http://192.168.0.156/DVWA/vulnerabilities/xss_r/'",
-        "level": 1,
-        "parameter": null,
-        "referer": "",
-        "module": "cookieflags",
-        "http_request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "curl_command": "curl \"http://192.168.0.156/DVWA/vulnerabilities/xss_r/\"",
-        "wstg": [
-          "WSTG-SESS-02"
-        ]
-      },
-      {
-        "method": "GET",
-        "path": "/DVWA/vulnerabilities/xss_r/",
-        "info": "HttpOnly flag is not set on the cookie 'PHPSESSID' set at 'http://192.168.0.156/DVWA/vulnerabilities/xss_r/'",
-        "level": 1,
-        "parameter": null,
-        "referer": "",
-        "module": "cookieflags",
-        "http_request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "curl_command": "curl \"http://192.168.0.156/DVWA/vulnerabilities/xss_r/\"",
-        "wstg": [
-          "WSTG-SESS-02"
-        ]
-      }
-    ],
+    "MIME Type Confusion": [],
+    "HttpOnly Flag cookie": [],
     "Unencrypted Channels": [
       {
         "method": "GET",
-        "path": "/DVWA/vulnerabilities/xss_r",
+        "path": "/",
         "info": "No HTTPS redirection for this host. All HTTP requests are served in clear text.",
         "level": 1,
         "parameter": null,
         "referer": "",
         "module": "https_redirect",
-        "http_request": "GET /DVWA/vulnerabilities/xss_r HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "curl_command": "curl \"http://192.168.0.156/DVWA/vulnerabilities/xss_r\"",
-        "wstg": [
-          "WSTG-CRYP-03"
-        ]
-      },
-      {
-        "method": "GET",
-        "path": "/DVWA/vulnerabilities/xss_r/",
-        "info": "Sensitive data (cookie in the response) was sent over an unencrypted HTTP connection to http://192.168.0.156/DVWA/vulnerabilities/xss_r/. The server did not enforce HTTPS.",
-        "level": 2,
-        "parameter": null,
-        "referer": "",
-        "module": "https_redirect",
-        "http_request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "curl_command": "curl \"http://192.168.0.156/DVWA/vulnerabilities/xss_r/\"",
-        "wstg": [
-          "WSTG-CRYP-03"
-        ]
-      },
-      {
-        "method": "GET",
-        "path": "/DVWA/vulnerabilities/xss_r/",
-        "info": "Sensitive data (GET parameters) was sent over an unencrypted HTTP connection to http://192.168.0.156/DVWA/vulnerabilities/xss_r/?name=default. The server did not enforce HTTPS.",
-        "level": 2,
-        "parameter": null,
-        "referer": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/",
-        "module": "https_redirect",
-        "http_request": "GET /DVWA/vulnerabilities/xss_r/?name=default HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\ncookie: security=low; PHPSESSID=bodhpiumlb7k1tgpt3pe67rkla",
-        "curl_command": "curl \"http://192.168.0.156/DVWA/vulnerabilities/xss_r/?name=default\" -e \"http://192.168.0.156/DVWA/vulnerabilities/xss_r/\"",
+        "http_request": "GET / HTTP/1.1\nhost: 192.168.0.227:3000\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "curl_command": "curl \"http://192.168.0.227:3000/\"",
         "wstg": [
           "WSTG-CRYP-03"
         ]
@@ -629,52 +542,8 @@
     "Log4Shell": [],
     "NS takeover": [],
     "Open Redirect": [],
-    "Reflected Cross Site Scripting": [
-      {
-        "method": "GET",
-        "path": "/DVWA/vulnerabilities/xss_r/",
-        "info": "Reflected Cross Site Scripting vulnerability found via injection in the parameter name",
-        "level": 2,
-        "parameter": "name",
-        "referer": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/",
-        "module": "xss",
-        "http_request": "GET /DVWA/vulnerabilities/xss_r/?name=%3CScRiPt%3Ealert%28%27wvq6u4k4ih%27%29%3C%2FsCrIpT%3E HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\ncookie: security=low; PHPSESSID=bodhpiumlb7k1tgpt3pe67rkla",
-        "curl_command": "curl \"http://192.168.0.156/DVWA/vulnerabilities/xss_r/?name=%3CScRiPt%3Ealert%28%27wvq6u4k4ih%27%29%3C%2FsCrIpT%3E\" -e \"http://192.168.0.156/DVWA/vulnerabilities/xss_r/\"",
-        "wstg": [
-          "WSTG-INPV-01"
-        ]
-      }
-    ],
-    "Secure Flag cookie": [
-      {
-        "method": "GET",
-        "path": "/DVWA/vulnerabilities/xss_r/",
-        "info": "Secure flag is not set on the cookie: 'security' set at 'http://192.168.0.156/DVWA/vulnerabilities/xss_r/'",
-        "level": 1,
-        "parameter": null,
-        "referer": "",
-        "module": "cookieflags",
-        "http_request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "curl_command": "curl \"http://192.168.0.156/DVWA/vulnerabilities/xss_r/\"",
-        "wstg": [
-          "WSTG-SESS-02"
-        ]
-      },
-      {
-        "method": "GET",
-        "path": "/DVWA/vulnerabilities/xss_r/",
-        "info": "Secure flag is not set on the cookie: 'PHPSESSID' set at 'http://192.168.0.156/DVWA/vulnerabilities/xss_r/'",
-        "level": 1,
-        "parameter": null,
-        "referer": "",
-        "module": "cookieflags",
-        "http_request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "curl_command": "curl \"http://192.168.0.156/DVWA/vulnerabilities/xss_r/\"",
-        "wstg": [
-          "WSTG-SESS-02"
-        ]
-      }
-    ],
+    "Reflected Cross Site Scripting": [],
+    "Secure Flag cookie": [],
     "Spring4Shell": [],
     "SQL Injection": [],
     "TLS/SSL misconfigurations": [],
@@ -696,14 +565,14 @@
     "HTTP Methods": [
       {
         "method": "GET",
-        "path": "/DVWA/vulnerabilities/xss_r/",
-        "info": "Possible interesting methods (using heuristics) on http://192.168.0.156/DVWA/vulnerabilities/xss_r/: ",
+        "path": "/",
+        "info": "Possible interesting methods (using heuristics) on http://192.168.0.227:3000/: ",
         "level": 0,
         "parameter": null,
         "referer": "",
         "module": "methods",
-        "http_request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "curl_command": "curl \"http://192.168.0.156/DVWA/vulnerabilities/xss_r/\"",
+        "http_request": "GET / HTTP/1.1\nhost: 192.168.0.227:3000\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "curl_command": "curl \"http://192.168.0.227:3000/\"",
         "wstg": [
           "WSTG-CONF-06"
         ]
@@ -712,12 +581,12 @@
     "TLS/SSL misconfigurations": []
   },
   "infos": {
-    "target": "http://192.168.0.156/DVWA/vulnerabilities/xss_r",
-    "date": "Thu, 27 Nov 2025 01:49:54 +0000",
+    "target": "http://192.168.0.227:3000/",
+    "date": "Mon, 08 Dec 2025 15:14:29 +0000",
     "version": "Wapiti 3.2.10",
-    "scope": "folder",
+    "scope": "page",
     "auth": null,
-    "crawled_pages_nbr": 3,
+    "crawled_pages_nbr": 1,
     "detailed_report_level": 0
   }
 }

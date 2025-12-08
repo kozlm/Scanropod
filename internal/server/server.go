@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kozlm/scanropods/internal/aggregator"
+	"github.com/kozlm/scanropods/internal/aggregate"
 	"github.com/kozlm/scanropods/internal/scanner"
 	"github.com/kozlm/scanropods/internal/store"
 )
@@ -91,7 +91,7 @@ func resultHandler(c *gin.Context) {
 		return
 	}
 
-	agg, err := aggregator.Build(id, aggregator.BuilderConfig{
+	agg, err := aggregate.Build(id, aggregate.BuilderConfig{
 		ZapCSVPath:    "/home/michal/GolandProjects/Scanropod/config/cwe-lists/zap-csv-fix.csv",
 		WapitiCSVPath: "/home/michal/GolandProjects/Scanropod/config/cwe-lists/wapiti-csv.csv",
 		NiktoCSVPath:  "/home/michal/GolandProjects/Scanropod/config/cwe-lists/nikto-csv-fix.csv",

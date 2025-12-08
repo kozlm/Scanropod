@@ -1,6 +1,23 @@
-package models
+package model
 
 import "time"
+
+type ScanRequest struct {
+	Targets  []string               `json:"targets" binding:"required"`
+	Scanners []string               `json:"scanners"`
+	Options  map[string]interface{} `json:"options,omitempty"`
+}
+
+type ScanResult struct {
+	ID         string     `json:"id"`
+	Targets    []string   `json:"targets"`
+	Scanners   []string   `json:"scanners"`
+	StartedAt  time.Time  `json:"started_at"`
+	FinishedAt *time.Time `json:"finished_at,omitempty"`
+	Done       bool       `json:"done"`
+
+	Result *AggregatedReport `json:"result,omitempty"`
+}
 
 type ScannerName string
 
@@ -31,8 +48,6 @@ type ScannerEntry struct {
 	Findings []interface{} `json:"findings"`
 }
 
-// Normalized "atom" that parsers will return,
-// then we group them into the structure above.
 type NormalizedFinding struct {
 	TargetURL string      // e.g. "http://192.168.0.156"
 	CWEID     string      // "CWE-79", "0" for informational
