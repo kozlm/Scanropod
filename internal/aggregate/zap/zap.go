@@ -118,11 +118,7 @@ func parseSingleReport(path string, zm cwe.ZapMap) ([]model.NormalizedFinding, e
 		for _, a := range s.Alerts {
 			cweID := zm[a.AlertRef]
 			if cweID == "" {
-				if a.CWEID != "" {
-					cweID = "CWE-" + a.CWEID
-				} else {
-					cweID = "0"
-				}
+				cweID = "0"
 			}
 
 			targetUrl, err := helper.CleanUrl(a.Instances[0].URI)

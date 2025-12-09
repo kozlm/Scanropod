@@ -21,10 +21,9 @@ type Result struct {
 	Info json.RawMessage `json:"info"` // raw blob, untouched
 	Type string          `json:"type"`
 
-	Host      string `json:"host"`
-	Port      string `json:"port"`
-	URL       string `json:"url"`
-	MatchedAt string `json:"matched-at"`
+	Host string `json:"host"`
+	Port string `json:"port"`
+	URL  string `json:"url"`
 
 	Request string `json:"request"`
 }
@@ -103,7 +102,7 @@ func parseSingleReport(path string, nm cwe.NucleiMap) ([]model.NormalizedFinding
 	var findings []model.NormalizedFinding
 
 	for _, r := range arr {
-		targetUrl, err := helper.CleanUrl(r.MatchedAt)
+		targetUrl, err := helper.CleanUrl(r.URL)
 		if err != nil {
 			return nil, fmt.Errorf("clean nuclei targetUrl: %w", err)
 		}

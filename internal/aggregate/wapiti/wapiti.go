@@ -100,7 +100,7 @@ func parseSingleReport(path string, wm *cwe.WapitiMap) ([]model.NormalizedFindin
 	// vulnerabilities, anomalies, additionals have same structure
 	addCategory := func(name string, list []wapitiFinding) error {
 		for _, v := range list {
-			targetUrl, err := helper.CleanUrl(r.Infos.Target + v.Path)
+			targetUrl, err := helper.CleanUrl(r.Infos.Target)
 			if err != nil {
 				return fmt.Errorf("clean wapiti targetUrl: %w", err)
 			}

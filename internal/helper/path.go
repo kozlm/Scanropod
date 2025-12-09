@@ -7,7 +7,9 @@ import (
 )
 
 func CleanUrl(rawUrl string) (string, error) {
-	parsedUrl, err := url.Parse(rawUrl)
+	decoded, _ := url.QueryUnescape(rawUrl)
+
+	parsedUrl, err := url.Parse(decoded)
 	if err != nil {
 		return "", err
 	}

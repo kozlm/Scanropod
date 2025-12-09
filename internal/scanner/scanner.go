@@ -62,10 +62,10 @@ func outputsDirFromCtx(ctx context.Context) string {
 }
 
 // StartScan initializes and runs requested scanners in parallel
-func StartScan(req *ScanRequest) (string, error) {
-	log.Printf("[StartScan] called with request: %+v", req)
+func StartScan(request *ScanRequest) (string, error) {
+	log.Printf("[StartScan] called with request: %+v", request)
 
-	if req == nil || len(req.Targets) == 0 {
+	if request == nil || len(request.Targets) == 0 {
 		log.Printf("[StartScan] error: no targets")
 		return "", errors.New("no targets")
 	}
@@ -94,46 +94,49 @@ func StartScan(req *ScanRequest) (string, error) {
 	log.Printf("[StartScan] context and cancel stored for scan ID: %s", id)
 
 	// default scanners if none provided
-	scanners := req.Scanners
+	scanners := request.Scanners
 	if len(scanners) == 0 {
 		scanners = []string{"zap", "nikto", "nuclei", "wapiti"}
 	}
 	log.Printf("[StartScan] scanners to run: %v", scanners)
 
-	sr := model.ScanResult{
+	result := model.ScanResult{
 		ID:        id,
-		Targets:   req.Targets,
+		Targets:   request.Targets,
 		Scanners:  scanners,
 		StartedAt: time.Now(),
 		Done:      false,
 	}
-	store.SetStatus(id, sr)
+	store.SetStatus(id, result)
 
-	var wg sync.WaitGroup
+	go func(scanID string, scannerList []string, requestTargets []string, parentCtx context.Context) {
+		var wGroup sync.WaitGroup
 
-	for _, sc := range scanners {
-		wg.Add(1)
-		go func(scannerName string) {
-			defer wg.Done()
-			log.Printf("[StartScan] starting scanner: %s", scannerName)
-			runSingleScanner(ctx, scannerName, req.Targets)
-			log.Printf("[StartScan] scanner finished: %s", scannerName)
-		}(sc)
-	}
+		for _, scanner := range scanners {
+			wGroup.Add(1)
+			go func(scannerName string) {
+				defer wGroup.Done()
+				log.Printf("[StartScan] starting scanner: %s", scannerName)
+				runSingleScanner(ctx, scannerName, request.Targets)
+				log.Printf("[StartScan] scanner finished: %s", scannerName)
+			}(scanner)
+		}
+		wGroup.Wait()
 
-	r := sr
-	now := time.Now()
-	r.FinishedAt = &now
-	r.Done = true
+		finished := result
+		now := time.Now()
+		finished.FinishedAt = &now
+		finished.Done = true
 
-	store.SetResult(id, r)
-	store.SetStatus(id, r)
+		store.SetResult(id, finished)
+		store.SetStatus(id, finished)
 
-	// cleanup
-	activeCancel.Lock()
-	delete(activeCancel.cancelMap, id)
-	activeCancel.Unlock()
-	log.Printf("[StartScan] scan %s finished and removed from activeCancel map", id)
+		// cleanup
+		activeCancel.Lock()
+		delete(activeCancel.cancelMap, id)
+		activeCancel.Unlock()
+		log.Printf("[StartScan] scan %s finished and removed from activeCancel map", id)
+	}(id, scanners, request.Targets, ctx)
 
 	return id, nil
 }

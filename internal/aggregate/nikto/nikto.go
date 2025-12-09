@@ -99,6 +99,9 @@ func parseSingleReport(path, scheme string, nm cwe.NiktoMap) ([]model.Normalized
 			}
 
 			cweID := nm[v.ID]
+			if cweID == "" {
+				cweID = "0"
+			}
 
 			payload := NiktoFindingPayload{
 				ID:         v.ID,

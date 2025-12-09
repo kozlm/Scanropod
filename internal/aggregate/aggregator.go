@@ -62,11 +62,6 @@ func Build(scanID string, cfg BuilderConfig) (model.AggregatedReport, error) {
 
 func groupFindings(findings []model.NormalizedFinding) model.AggregatedReport {
 	// map[target][cwe][scanner] -> []payload
-	type scannerKey struct {
-		target string
-		cwe    string
-		scan   model.ScannerName
-	}
 
 	byTarget := make(map[string]map[string]map[model.ScannerName][]interface{})
 
