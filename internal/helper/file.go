@@ -19,7 +19,7 @@ func SanitizeFilename(filename string) string {
 	if filename == "" {
 		return "unknown"
 	}
-	r := strings.NewReplacer(
+	replacer := strings.NewReplacer(
 		"://", "_",
 		":", "_",
 		"/", "_",
@@ -28,18 +28,18 @@ func SanitizeFilename(filename string) string {
 		"=", "_",
 		" ", "_",
 	)
-	return r.Replace(filename)
+	return replacer.Replace(filename)
 }
 
 func SchemeFromReportFileName(filename string) string {
 	// after "nikto-" up to first "_"
 	hyphenIdx := strings.Index(filename, "-")
-	s := filename[hyphenIdx+1:]
-	underscoreIdx := strings.IndexRune(s, '_')
+	afterHyphen := filename[hyphenIdx+1:]
+	underscoreIdx := strings.IndexRune(afterHyphen, '_')
 	if underscoreIdx == -1 {
 		return "http"
 	}
-	scheme := s[:underscoreIdx]
+	scheme := afterHyphen[:underscoreIdx]
 	if scheme == "https" {
 		return "https"
 	}

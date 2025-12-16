@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/kozlm/scanropods/internal/cwe"
 	"github.com/kozlm/scanropods/internal/helper"
 	"github.com/kozlm/scanropods/internal/model"
 )
 
-type report struct {
+type result struct {
 	Created string    `json:"created"`
 	Sites   []zapSite `json:"site"`
 }
@@ -47,7 +48,7 @@ type zapInstance struct {
 	Evidence string `json:"evidence"`
 }
 
-type ZapFindingPayload struct {
+type zapFindingPayload struct {
 	Alert      string `json:"alert"`
 	Name       string `json:"name"`
 	RiskCode   string `json:"riskcode"`
@@ -63,7 +64,7 @@ type ZapFindingPayload struct {
 
 // ParseReports reads all ZAP JSON files for given scanID
 func ParseReports(scanID, zapCSVPath string) ([]model.NormalizedFinding, error) {
-	zm, err := cwe.LoadZapMap(zapCSVPath)
+	cweMap, err := cwe.LoadZapMap(zapCSVPath)
 	if err != nil {
 		return nil, fmt.Errorf("load zap cwe map: %w", err)
 	}
@@ -76,17 +77,18 @@ func ParseReports(scanID, zapCSVPath string) ([]model.NormalizedFinding, error) 
 
 	var out []model.NormalizedFinding
 
-	for _, e := range entries {
-		if e.IsDir() {
+	for _, entry := range entries {
+		if entry.IsDir() {
 			continue
 		}
-		name := e.Name()
+		name := entry.Name()
 		if !isZapReportFile(name) {
 			continue
 		}
 
 		path := filepath.Join(reportsDir, name)
-		fileFindings, err := parseSingleReport(path, zm)
+
+		fileFindings, err := parseSingleReport(path, cweMap)
 		if err != nil {
 			return nil, fmt.Errorf("parse zap report %s: %w", name, err)
 		}
@@ -97,47 +99,47 @@ func ParseReports(scanID, zapCSVPath string) ([]model.NormalizedFinding, error) 
 }
 
 func isZapReportFile(name string) bool {
-	return filepath.Ext(name) == ".json" && (name == "zap.json" || len(name) >= 4 && name[:4] == "zap-")
+	return filepath.Ext(name) == ".json" && strings.HasPrefix(name, "zap-")
 }
 
-func parseSingleReport(path string, zm cwe.ZapMap) ([]model.NormalizedFinding, error) {
+func parseSingleReport(path string, cweMap cwe.ZapMap) ([]model.NormalizedFinding, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	var r report
-	if err := json.Unmarshal(data, &r); err != nil {
+	var res result
+	if err := json.Unmarshal(data, &res); err != nil {
 		return nil, fmt.Errorf("unmarshal zap json: %w", err)
 	}
 
 	var findings []model.NormalizedFinding
 
-	for _, s := range r.Sites {
+	for _, site := range res.Sites {
 
-		for _, a := range s.Alerts {
-			cweID := zm[a.AlertRef]
+		for _, alert := range site.Alerts {
+			cweID := cweMap[alert.AlertRef]
 			if cweID == "" {
 				cweID = "0"
 			}
 
-			targetUrl, err := helper.CleanUrl(a.Instances[0].URI)
+			targetUrl, err := helper.CleanUrl(alert.Instances[0].URI)
 			if err != nil {
 				return nil, fmt.Errorf("clean zap targetUrl: %w", err)
 			}
 
-			payload := ZapFindingPayload{
-				Alert:      a.Alert,
-				Name:       a.Name,
-				RiskCode:   a.RiskCode,
-				Confidence: a.Confidence,
-				Desc:       a.Desc,
-				Solution:   a.Solution,
-				Reference:  a.Reference,
-				Method:     a.Instances[0].Method,
-				Param:      a.Instances[0].Param,
-				Evidence:   a.Instances[0].Evidence,
-				URI:        a.Instances[0].URI,
+			payload := zapFindingPayload{
+				Alert:      alert.Alert,
+				Name:       alert.Name,
+				RiskCode:   alert.RiskCode,
+				Confidence: alert.Confidence,
+				Desc:       alert.Desc,
+				Solution:   alert.Solution,
+				Reference:  alert.Reference,
+				Method:     alert.Instances[0].Method,
+				Param:      alert.Instances[0].Param,
+				Evidence:   alert.Instances[0].Evidence,
+				URI:        alert.Instances[0].URI,
 			}
 
 			findings = append(findings, model.NormalizedFinding{

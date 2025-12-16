@@ -13,12 +13,12 @@ import (
 	"github.com/kozlm/scanropods/internal/model"
 )
 
-type Result struct {
+type templateResult struct {
 	TemplateID      string `json:"template-id"`
 	TemplatePath    string `json:"template-path"`
 	TemplateEncoded string `json:"template-encoded"`
 
-	Info json.RawMessage `json:"info"` // raw blob, untouched
+	Info json.RawMessage `json:"info"` // raw blob
 	Type string          `json:"type"`
 
 	Host string `json:"host"`
@@ -28,7 +28,7 @@ type Result struct {
 	Request string `json:"request"`
 }
 
-type NucleiFindingPayload struct {
+type nucleiFindingPayload struct {
 	TemplateID string          `json:"template_id"`
 	Info       json.RawMessage `json:"info"`
 	Type       string          `json:"type"`
@@ -38,7 +38,7 @@ type NucleiFindingPayload struct {
 
 // ParseReports reads all Nuclei JSON files for given scanID
 func ParseReports(scanID, nucleiCSVPath string) ([]model.NormalizedFinding, error) {
-	nm, err := cwe.LoadNucleiMap(nucleiCSVPath)
+	cweMap, err := cwe.LoadNucleiMap(nucleiCSVPath)
 	if err != nil {
 		return nil, fmt.Errorf("load nuclei cwe map: %w", err)
 	}
@@ -51,17 +51,17 @@ func ParseReports(scanID, nucleiCSVPath string) ([]model.NormalizedFinding, erro
 
 	var out []model.NormalizedFinding
 
-	for _, e := range entries {
-		if e.IsDir() {
+	for _, entry := range entries {
+		if entry.IsDir() {
 			continue
 		}
-		name := e.Name()
+		name := entry.Name()
 		if !isNucleiReportFile(name) {
 			continue
 		}
 
 		path := filepath.Join(reportsDir, name)
-		fileFindings, err := parseSingleReport(path, nm)
+		fileFindings, err := parseSingleReport(path, cweMap)
 		if err != nil {
 			return nil, fmt.Errorf("parse nuclei report %s: %w", name, err)
 		}
@@ -75,49 +75,49 @@ func isNucleiReportFile(name string) bool {
 	return filepath.Ext(name) == ".json" && strings.HasPrefix(name, "nuclei-")
 }
 
-func parseSingleReport(path string, nm cwe.NucleiMap) ([]model.NormalizedFinding, error) {
+func parseSingleReport(path string, cweMap cwe.NucleiMap) ([]model.NormalizedFinding, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
 	// Nuclei writes JSON array or JSON lines
-	var arr []Result
-	if err := json.Unmarshal(data, &arr); err != nil {
+	var templates []templateResult
+	if err := json.Unmarshal(data, &templates); err != nil {
 		// try JSON lines
-		arr = []Result{}
-		dec := json.NewDecoder(strings.NewReader(string(data)))
+		templates = []templateResult{}
+		decoder := json.NewDecoder(strings.NewReader(string(data)))
 		for {
-			var r Result
-			if err := dec.Decode(&r); err != nil {
+			var template templateResult
+			if err := decoder.Decode(&template); err != nil {
 				if err.Error() == "EOF" || err == io.EOF {
 					break
 				}
 				return nil, fmt.Errorf("unmarshal nuclei json (lines fallback): %w", err)
 			}
-			arr = append(arr, r)
+			templates = append(templates, template)
 		}
 	}
 
 	var findings []model.NormalizedFinding
 
-	for _, r := range arr {
-		targetUrl, err := helper.CleanUrl(r.URL)
+	for _, template := range templates {
+		targetUrl, err := helper.CleanUrl(template.URL)
 		if err != nil {
 			return nil, fmt.Errorf("clean nuclei targetUrl: %w", err)
 		}
 
-		cweID := nm[r.TemplateID]
+		cweID := cweMap[template.TemplateID]
 		if cweID == "" {
 			cweID = "0"
 		}
 
-		payload := NucleiFindingPayload{
-			TemplateID: r.TemplateID,
-			Info:       r.Info, // raw json copied unchanged
-			Type:       r.Type,
-			Request:    r.Request,
-			URL:        r.URL,
+		payload := nucleiFindingPayload{
+			TemplateID: template.TemplateID,
+			Info:       template.Info, // raw json copied unchanged
+			Type:       template.Type,
+			Request:    template.Request,
+			URL:        template.URL,
 		}
 
 		findings = append(findings, model.NormalizedFinding{

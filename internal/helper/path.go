@@ -39,11 +39,11 @@ func BuildUrl(host string, path string, port string, scheme string) string {
 		withPort = host + ":" + port
 	}
 
-	u := &url.URL{
+	finalUrl := &url.URL{
 		Scheme: scheme,
 		Host:   withPort,
 		Path:   path,
 	}
 
-	return u.String()
+	return finalUrl.String()
 }

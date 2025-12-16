@@ -19,20 +19,20 @@ type tlsPhraseMapping struct {
 
 func LoadWapitiMap(path string) (*WapitiMap, error) {
 	// CSV columns: name,cwe,keyphrase
-	f, err := os.Open(path)
+	file, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("read wapiti map file: %w", err)
 	}
-	defer f.Close()
+	defer file.Close()
 
-	reader := csv.NewReader(f)
+	reader := csv.NewReader(file)
 
 	records, err := reader.ReadAll()
 	if err != nil {
 		return nil, fmt.Errorf("parse wapiti csv: %w", err)
 	}
 
-	m := &WapitiMap{
+	wapitiMap := &WapitiMap{
 		byName:      make(map[string]string),
 		tlsByPhrase: []tlsPhraseMapping{},
 	}
@@ -48,7 +48,7 @@ func LoadWapitiMap(path string) (*WapitiMap, error) {
 			continue
 		}
 		if strings.EqualFold(name, "TLS/SSL misconfigurations") && phrase != "" {
-			m.tlsByPhrase = append(m.tlsByPhrase, tlsPhraseMapping{
+			wapitiMap.tlsByPhrase = append(wapitiMap.tlsByPhrase, tlsPhraseMapping{
 				Phrase: phrase,
 				CWE:    cwe,
 			})
@@ -57,33 +57,33 @@ func LoadWapitiMap(path string) (*WapitiMap, error) {
 
 		// no keyphrase
 		if phrase == "" {
-			m.byName[name] = cwe
+			wapitiMap.byName[name] = cwe
 		}
 	}
 
-	return m, nil
+	return wapitiMap, nil
 }
 
 // Lookup returns CWE for given vulnerability name and info
 // - for TLS/SSL misconfigurations, tries matching info with keyphrase
 // - else, tries matching vulnerability name
 // - returns "0" (informational) if no CWE found
-func (m *WapitiMap) Lookup(name, info string) string {
-	if m == nil {
+func (wapitiMap *WapitiMap) Lookup(name, info string) string {
+	if wapitiMap == nil {
 		return "0"
 	}
 
 	nameTrimmed := strings.TrimSpace(name)
 	if strings.EqualFold(nameTrimmed, "TLS/SSL misconfigurations") {
 		infoLower := strings.ToLower(info)
-		for _, e := range m.tlsByPhrase {
-			if strings.Contains(infoLower, strings.ToLower(e.Phrase)) {
-				return e.CWE
+		for _, entry := range wapitiMap.tlsByPhrase {
+			if strings.Contains(infoLower, strings.ToLower(entry.Phrase)) {
+				return entry.CWE
 			}
 		}
 	}
 
-	if cwe, ok := m.byName[nameTrimmed]; ok {
+	if cwe, ok := wapitiMap.byName[nameTrimmed]; ok {
 		return cwe
 	}
 	return "0"

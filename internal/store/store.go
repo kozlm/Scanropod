@@ -19,28 +19,28 @@ func Init() {
 	results = make(map[string]model.ScanResult)
 }
 
-func SetStatus(id string, s model.ScanResult) {
+func SetStatus(id string, result model.ScanResult) {
 	mu.Lock()
 	defer mu.Unlock()
-	statuses[id] = s
+	statuses[id] = result
 }
 
 func GetStatus(id string) (model.ScanResult, bool) {
 	mu.RLock()
 	defer mu.RUnlock()
-	s, ok := statuses[id]
-	return s, ok
+	status, ok := statuses[id]
+	return status, ok
 }
 
-func SetResult(id string, r model.ScanResult) {
+func SetResult(id string, result model.ScanResult) {
 	mu.Lock()
 	defer mu.Unlock()
-	results[id] = r
+	results[id] = result
 }
 
 func GetResult(id string) (model.ScanResult, bool) {
 	mu.RLock()
 	defer mu.RUnlock()
-	r, ok := results[id]
-	return r, ok
+	result, ok := results[id]
+	return result, ok
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/kozlm/scanropods/internal/model"
 )
 
-type hostReport struct {
+type hostResult struct {
 	Host            string      `json:"host"`
 	IP              string      `json:"ip"`
 	Port            string      `json:"port"`
@@ -28,7 +28,7 @@ type vulnEntry struct {
 	Msg        string `json:"msg"`
 }
 
-type NiktoFindingPayload struct {
+type niktoFindingPayload struct {
 	ID         string `json:"id"`
 	Method     string `json:"method"`
 	Msg        string `json:"msg"`
@@ -38,7 +38,7 @@ type NiktoFindingPayload struct {
 
 // ParseReports reads all Nikto JSON files for given scanID
 func ParseReports(scanID, niktoCSVPath string) ([]model.NormalizedFinding, error) {
-	nm, err := cwe.LoadNiktoMap(niktoCSVPath)
+	cweMap, err := cwe.LoadNiktoMap(niktoCSVPath)
 	if err != nil {
 		return nil, fmt.Errorf("load nikto cwe map: %w", err)
 	}
@@ -51,11 +51,11 @@ func ParseReports(scanID, niktoCSVPath string) ([]model.NormalizedFinding, error
 
 	var out []model.NormalizedFinding
 
-	for _, e := range entries {
-		if e.IsDir() {
+	for _, entry := range entries {
+		if entry.IsDir() {
 			continue
 		}
-		name := e.Name()
+		name := entry.Name()
 		if !isNiktoReportFile(name) {
 			continue
 		}
@@ -63,7 +63,7 @@ func ParseReports(scanID, niktoCSVPath string) ([]model.NormalizedFinding, error
 		scheme := helper.SchemeFromReportFileName(name) // http / https
 		path := filepath.Join(reportsDir, name)
 
-		fileFindings, err := parseSingleReport(path, scheme, nm)
+		fileFindings, err := parseSingleReport(path, scheme, cweMap)
 		if err != nil {
 			return nil, fmt.Errorf("parse nikto report %s: %w", name, err)
 		}
@@ -77,38 +77,38 @@ func isNiktoReportFile(name string) bool {
 	return filepath.Ext(name) == ".json" && strings.HasPrefix(name, "nikto-")
 }
 
-func parseSingleReport(path, scheme string, nm cwe.NiktoMap) ([]model.NormalizedFinding, error) {
+func parseSingleReport(path, scheme string, cweMap cwe.NiktoMap) ([]model.NormalizedFinding, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	var hosts []hostReport
+	var hosts []hostResult
 	if err := json.Unmarshal(data, &hosts); err != nil {
 		return nil, fmt.Errorf("unmarshal nikto json: %w", err)
 	}
 
 	var findings []model.NormalizedFinding
 
-	for _, h := range hosts {
+	for _, host := range hosts {
 
-		for _, v := range h.Vulnerabilities {
-			targetUrl, err := helper.CleanUrl(helper.BuildUrl(h.Host, v.URL, h.Port, scheme))
+		for _, vuln := range host.Vulnerabilities {
+			targetUrl, err := helper.CleanUrl(helper.BuildUrl(host.Host, vuln.URL, host.Port, scheme))
 			if err != nil {
 				return nil, fmt.Errorf("clean nikto targetUrl: %w", err)
 			}
 
-			cweID := nm[v.ID]
+			cweID := cweMap[vuln.ID]
 			if cweID == "" {
 				cweID = "0"
 			}
 
-			payload := NiktoFindingPayload{
-				ID:         v.ID,
-				Method:     v.Method,
-				Msg:        v.Msg,
-				References: v.References,
-				URL:        v.URL,
+			payload := niktoFindingPayload{
+				ID:         vuln.ID,
+				Method:     vuln.Method,
+				Msg:        vuln.Msg,
+				References: vuln.References,
+				URL:        vuln.URL,
 			}
 
 			findings = append(findings, model.NormalizedFinding{

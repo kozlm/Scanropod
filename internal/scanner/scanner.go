@@ -44,18 +44,18 @@ const (
 )
 
 func reportsDirFromCtx(ctx context.Context) string {
-	if v := ctx.Value(reportsDirCtxKey); v != nil {
-		if s, ok := v.(string); ok && s != "" {
-			return s
+	if value := ctx.Value(reportsDirCtxKey); value != nil {
+		if str, ok := value.(string); ok && str != "" {
+			return str
 		}
 	}
 	return baseReportsDir
 }
 
 func outputsDirFromCtx(ctx context.Context) string {
-	if v := ctx.Value(outputsDirCtxKey); v != nil {
-		if s, ok := v.(string); ok && s != "" {
-			return s
+	if value := ctx.Value(outputsDirCtxKey); value != nil {
+		if str, ok := value.(string); ok && str != "" {
+			return str
 		}
 	}
 	return baseOutputsDir
@@ -191,15 +191,15 @@ func runNikto(ctx context.Context, targets []string) {
 	}
 	pluginArg := strings.Join(plugins, ";")
 
-	for _, t := range targets {
+	for _, target := range targets {
 		select {
 		case <-ctx.Done():
-			log.Printf("[runNikto] context cancelled, stopping. Last target: %s", t)
+			log.Printf("[runNikto] context cancelled, stopping. Last target: %s", target)
 			return
 		default:
 		}
 
-		safeTarget := helper.SanitizeFilename(t)
+		safeTarget := helper.SanitizeFilename(target)
 
 		reportFile := filepath.Join(
 			reportDir,
@@ -211,12 +211,12 @@ func runNikto(ctx context.Context, targets []string) {
 		)
 
 		log.Printf("[runNikto] scanning target: %s -> report: %s, output: %s",
-			t, reportFile, outputFile)
+			target, reportFile, outputFile)
 
 		cmd := exec.CommandContext(
 			ctx,
 			"nikto",
-			"-h", t,
+			"-h", target,
 			"-Tuning", "x6abd",
 			"-Plugins", pluginArg,
 			"-ask", "no",
@@ -227,13 +227,13 @@ func runNikto(ctx context.Context, targets []string) {
 
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			log.Printf("[runNikto] error running nikto for %s: %v (output: %s)", t, err, string(output))
+			log.Printf("[runNikto] error running nikto for %s: %v (output: %s)", target, err, string(output))
 		}
 
 		if writeErr := os.WriteFile(outputFile, output, 0o644); writeErr != nil {
-			log.Printf("[runNikto] failed to write nikto output for %s to %s: %v", t, outputFile, writeErr)
+			log.Printf("[runNikto] failed to write nikto output for %s to %s: %v", target, outputFile, writeErr)
 		} else {
-			log.Printf("[runNikto] nikto output written for %s: %s", t, outputFile)
+			log.Printf("[runNikto] nikto output written for %s: %s", target, outputFile)
 		}
 	}
 
@@ -248,15 +248,15 @@ func runNuclei(ctx context.Context, targets []string) {
 	reportDir := reportsDirFromCtx(ctx)
 	outputDir := outputsDirFromCtx(ctx)
 
-	for _, t := range targets {
+	for _, target := range targets {
 		select {
 		case <-ctx.Done():
-			log.Printf("[runNuclei] context cancelled, stopping. Last target: %s", t)
+			log.Printf("[runNuclei] context cancelled, stopping. Last target: %s", target)
 			return
 		default:
 		}
 
-		safeTarget := helper.SanitizeFilename(t)
+		safeTarget := helper.SanitizeFilename(target)
 
 		reportFile := filepath.Join(
 			reportDir,
@@ -268,12 +268,12 @@ func runNuclei(ctx context.Context, targets []string) {
 		)
 
 		log.Printf("[runNuclei] scanning target: %s -> report: %s, output: %s",
-			t, reportFile, outputFile)
+			target, reportFile, outputFile)
 
 		cmd := exec.CommandContext(
 			ctx,
 			"nuclei",
-			"-u", t,
+			"-u", target,
 			"-duc",
 			"-ni",
 			"-config", nucleiConfigPath,
@@ -282,13 +282,13 @@ func runNuclei(ctx context.Context, targets []string) {
 
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			log.Printf("[runNuclei] error running nuclei for %s: %v (output: %s)", t, err, string(output))
+			log.Printf("[runNuclei] error running nuclei for %s: %v (output: %s)", target, err, string(output))
 		}
 
 		if writeErr := os.WriteFile(outputFile, output, 0o644); writeErr != nil {
-			log.Printf("[runNuclei] failed to write nuclei output for %s to %s: %v", t, outputFile, writeErr)
+			log.Printf("[runNuclei] failed to write nuclei output for %s to %s: %v", target, outputFile, writeErr)
 		} else {
-			log.Printf("[runNuclei] nuclei output written for %s: %s", t, outputFile)
+			log.Printf("[runNuclei] nuclei output written for %s: %s", target, outputFile)
 		}
 	}
 
@@ -312,15 +312,15 @@ func runWapiti(ctx context.Context, targets []string) {
 	}
 	modArg := strings.Join(mods, ",")
 
-	for _, t := range targets {
+	for _, target := range targets {
 		select {
 		case <-ctx.Done():
-			log.Printf("[runWapiti] context cancelled, stopping. Last target: %s", t)
+			log.Printf("[runWapiti] context cancelled, stopping. Last target: %s", target)
 			return
 		default:
 		}
 
-		safeTarget := helper.SanitizeFilename(t)
+		safeTarget := helper.SanitizeFilename(target)
 
 		reportFile := filepath.Join(
 			reportDir,
@@ -332,14 +332,14 @@ func runWapiti(ctx context.Context, targets []string) {
 		)
 
 		log.Printf("[runWapiti] scanning target: %s -> report: %s, output: %s",
-			t, reportFile, outputFile)
+			target, reportFile, outputFile)
 
 		cmd := exec.CommandContext(
 			ctx,
 			"wapiti",
 			"--flush-session",
 			"-m", modArg,
-			"-u", t,
+			"-u", target,
 			"--scope", "page",
 			"-f", "json",
 			"-o", reportFile,
@@ -347,13 +347,13 @@ func runWapiti(ctx context.Context, targets []string) {
 
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			log.Printf("[runWapiti] error running wapiti for %s: %v (output: %s)", t, err, string(output))
+			log.Printf("[runWapiti] error running wapiti for %s: %v (output: %s)", target, err, string(output))
 		}
 
 		if writeErr := os.WriteFile(outputFile, output, 0o644); writeErr != nil {
-			log.Printf("[runWapiti] failed to write wapiti output for %s to %s: %v", t, outputFile, writeErr)
+			log.Printf("[runWapiti] failed to write wapiti output for %s to %s: %v", target, outputFile, writeErr)
 		} else {
-			log.Printf("[runWapiti] wapiti output written for %s: %s", t, outputFile)
+			log.Printf("[runWapiti] wapiti output written for %s: %s", target, outputFile)
 		}
 	}
 

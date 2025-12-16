@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/kozlm/scanropods/internal/cwe"
 	"github.com/kozlm/scanropods/internal/helper"
 	"github.com/kozlm/scanropods/internal/model"
 )
 
-type Report struct {
+type result struct {
 	Vulnerabilities map[string][]wapitiFinding `json:"vulnerabilities"`
 	Anomalies       map[string][]wapitiFinding `json:"anomalies"`
 	Additionals     map[string][]wapitiFinding `json:"additionals"`
@@ -35,7 +36,7 @@ type wapitiFinding struct {
 	WSTG        []string `json:"wstg"`
 }
 
-type WapitiFindingPayload struct {
+type wapitiFindingPayload struct {
 	Name    string `json:"name"`
 	Method  string `json:"method"`
 	Info    string `json:"info"`
@@ -47,7 +48,7 @@ type WapitiFindingPayload struct {
 
 // ParseReports reads all Wapiti JSON files for given scanID
 func ParseReports(scanID, wapitiCSVPath string) ([]model.NormalizedFinding, error) {
-	wm, err := cwe.LoadWapitiMap(wapitiCSVPath)
+	cweMap, err := cwe.LoadWapitiMap(wapitiCSVPath)
 	if err != nil {
 		return nil, fmt.Errorf("load wapiti cwe map: %w", err)
 	}
@@ -60,17 +61,17 @@ func ParseReports(scanID, wapitiCSVPath string) ([]model.NormalizedFinding, erro
 
 	var out []model.NormalizedFinding
 
-	for _, e := range entries {
-		if e.IsDir() {
+	for _, entry := range entries {
+		if entry.IsDir() {
 			continue
 		}
-		name := e.Name()
+		name := entry.Name()
 		if !isWapitiReportFile(name) {
 			continue
 		}
 
 		path := filepath.Join(reportsDir, name)
-		fileFindings, err := parseSingleReport(path, wm)
+		fileFindings, err := parseSingleReport(path, cweMap)
 		if err != nil {
 			return nil, fmt.Errorf("parse wapiti report %s: %w", name, err)
 		}
@@ -81,40 +82,40 @@ func ParseReports(scanID, wapitiCSVPath string) ([]model.NormalizedFinding, erro
 }
 
 func isWapitiReportFile(name string) bool {
-	return filepath.Ext(name) == ".json" && (name == "wapiti.json" || len(name) >= 7 && name[:7] == "wapiti-")
+	return filepath.Ext(name) == ".json" && strings.HasPrefix(name, "wapiti-")
 }
 
-func parseSingleReport(path string, wm *cwe.WapitiMap) ([]model.NormalizedFinding, error) {
-	b, err := os.ReadFile(path)
+func parseSingleReport(path string, cweMap *cwe.WapitiMap) ([]model.NormalizedFinding, error) {
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	var r Report
-	if err := json.Unmarshal(b, &r); err != nil {
+	var res result
+	if err := json.Unmarshal(data, &res); err != nil {
 		return nil, fmt.Errorf("unmarshal wapiti json: %w", err)
 	}
 
 	findings := make([]model.NormalizedFinding, 0)
 
 	// vulnerabilities, anomalies, additionals have same structure
-	addCategory := func(name string, list []wapitiFinding) error {
-		for _, v := range list {
-			targetUrl, err := helper.CleanUrl(r.Infos.Target)
+	addCategory := func(name string, categoryEntries []wapitiFinding) error {
+		for _, categoryEntry := range categoryEntries {
+			targetUrl, err := helper.CleanUrl(res.Infos.Target)
 			if err != nil {
 				return fmt.Errorf("clean wapiti targetUrl: %w", err)
 			}
 
-			cweID := wm.Lookup(name, v.Info)
+			cweID := cweMap.Lookup(name, categoryEntry.Info)
 
-			payload := WapitiFindingPayload{
+			payload := wapitiFindingPayload{
 				Name:    name,
-				Method:  v.Method,
-				Info:    v.Info,
-				Level:   v.Level,
-				Module:  v.Module,
-				Request: v.HTTPRequest,
-				Path:    v.Path,
+				Method:  categoryEntry.Method,
+				Info:    categoryEntry.Info,
+				Level:   categoryEntry.Level,
+				Module:  categoryEntry.Module,
+				Request: categoryEntry.HTTPRequest,
+				Path:    categoryEntry.Path,
 			}
 
 			findings = append(findings, model.NormalizedFinding{
@@ -127,17 +128,18 @@ func parseSingleReport(path string, wm *cwe.WapitiMap) ([]model.NormalizedFindin
 		return nil
 	}
 
-	for name, list := range r.Vulnerabilities {
+	// append findings from vulnerabilities, anomalies and additionals categories
+	for name, list := range res.Vulnerabilities {
 		if err := addCategory(name, list); err != nil {
 			return nil, err
 		}
 	}
-	for name, list := range r.Anomalies {
+	for name, list := range res.Anomalies {
 		if err := addCategory(name, list); err != nil {
 			return nil, err
 		}
 	}
-	for name, list := range r.Additionals {
+	for name, list := range res.Additionals {
 		if err := addCategory(name, list); err != nil {
 			return nil, err
 		}
