@@ -4,8 +4,6 @@
 - zap - weird spider; uri in instances
 
 TODO
-- fix spider
-- fix urls in nikto, wapiti, zap, nuclei
 - fix response
 - make paths ambiguous
 - add check if report made

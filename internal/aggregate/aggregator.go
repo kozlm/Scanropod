@@ -60,12 +60,12 @@ func Build(scanID string, cfg BuilderConfig) (model.AggregatedReport, error) {
 	return groupFindings(all), nil
 }
 
-func groupFindings(findings []model.NormalizedFinding) model.AggregatedReport {
+func groupFindings(rawFindings []model.NormalizedFinding) model.AggregatedReport {
 	// map[target][cwe][scanner] -> []payload
 
 	byTarget := make(map[string]map[string]map[model.ScannerName][]interface{})
 
-	for _, finding := range findings {
+	for _, finding := range rawFindings {
 		if finding.TargetURL == "" {
 			finding.TargetURL = "unknown"
 		}
@@ -79,30 +79,8 @@ func groupFindings(findings []model.NormalizedFinding) model.AggregatedReport {
 			append(byTarget[finding.TargetURL][finding.CWEID][finding.Scanner], finding.Payload)
 	}
 
-	var targets []model.TargetEntry
-	for url, cweMap := range byTarget {
-		var cwes []model.CWEEntry
-		for cweID, scannerMap := range cweMap {
-			var scanners []model.ScannerEntry
-			for scannerName, payloads := range scannerMap {
-				scanners = append(scanners, model.ScannerEntry{
-					Name:     scannerName,
-					Findings: payloads,
-				})
-			}
-			cwes = append(cwes, model.CWEEntry{
-				CWEID:    cweID,
-				Scanners: scanners,
-			})
-		}
-		targets = append(targets, model.TargetEntry{
-			URL:  url,
-			CWEs: cwes,
-		})
-	}
-
 	return model.AggregatedReport{
 		ScanDate: time.Now().UTC(),
-		Targets:  targets,
+		Findings: byTarget,
 	}
 }

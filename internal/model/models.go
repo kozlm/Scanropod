@@ -29,23 +29,8 @@ const (
 )
 
 type AggregatedReport struct {
-	ScanDate time.Time     `json:"scan_date"`
-	Targets  []TargetEntry `json:"targets"`
-}
-
-type TargetEntry struct {
-	URL  string     `json:"url"`
-	CWEs []CWEEntry `json:"cwes"`
-}
-
-type CWEEntry struct {
-	CWEID    string         `json:"cwe_id"`
-	Scanners []ScannerEntry `json:"scanners"`
-}
-
-type ScannerEntry struct {
-	Name     ScannerName   `json:"name"`
-	Findings []interface{} `json:"findings"`
+	ScanDate time.Time                                           `json:"scan_date"`
+	Findings map[string]map[string]map[ScannerName][]interface{} `json:"findings"`
 }
 
 type NormalizedFinding struct {
