@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/kozlm/scanropods/internal/aggregate"
+	"github.com/kozlm/scanropods/internal/helper"
 	"github.com/kozlm/scanropods/internal/model"
 	"github.com/kozlm/scanropods/internal/scanner"
 	"github.com/kozlm/scanropods/internal/store"
@@ -38,6 +39,12 @@ func Run() error {
 func startHandler(ctx *gin.Context) {
 	var request scanner.ScanRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
+		log.Printf("[startHandler] invalid request: %v", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := helper.ValidateScanRequest(&request); err != nil {
 		log.Printf("[startHandler] invalid request: %v", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

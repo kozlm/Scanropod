@@ -2,7 +2,6 @@ package scanner
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -66,10 +65,6 @@ func outputsDirFromCtx(ctx context.Context) string {
 func StartScan(request *ScanRequest) (string, error) {
 	log.Printf("[StartScan] called with request: %+v", request)
 	var scanFailed atomic.Bool
-	if request == nil || len(request.Targets) == 0 {
-		log.Printf("[StartScan] error: no targets")
-		return "", errors.New("no targets")
-	}
 
 	// generate scan ID and create per-scan dirs
 	id := uuid.New().String()
