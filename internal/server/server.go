@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/kozlm/scanropods/internal/aggregate"
+	"github.com/kozlm/scanropods/internal/model"
 	"github.com/kozlm/scanropods/internal/scanner"
 	"github.com/kozlm/scanropods/internal/store"
 )
@@ -47,7 +48,7 @@ func startHandler(ctx *gin.Context) {
 	id, err := scanner.StartScan(&request)
 	if err != nil {
 		log.Printf("[startHandler] StartScan error: %v", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to start scan"})
 		return
 	}
 
@@ -62,7 +63,7 @@ func statusHandler(ctx *gin.Context) {
 	status, ok := store.GetStatus(id)
 	if !ok {
 		log.Printf("[statusHandler] status not found for id=%s", id)
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "scan not found"})
 		return
 	}
 	ctx.JSON(http.StatusOK, status)
@@ -75,13 +76,19 @@ func resultHandler(ctx *gin.Context) {
 	status, ok := store.GetStatus(id)
 	if !ok {
 		log.Printf("[resultHandler] status not found for id=%s", id)
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "scan not found"})
 		return
 	}
 
-	if !status.Done {
+	if status.Status != model.StatusDone {
 		log.Printf("[resultHandler] scan not ready for id=%s", id)
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "not found or not ready"})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "scan not ready"})
+		return
+	}
+
+	if status.Status == model.StatusFailed {
+		log.Printf("[resultHandler] scan failed for id=%s", id)
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "scan failed"})
 		return
 	}
 
@@ -104,12 +111,7 @@ func resultHandler(ctx *gin.Context) {
 	}
 
 	result := status
-	now := time.Now()
-	result.FinishedAt = &now
-	result.Done = true
 	result.Result = &aggregated
-
-	store.SetStatus(id, result)
 	store.SetResult(id, result)
 
 	ctx.JSON(http.StatusOK, result)
@@ -119,12 +121,21 @@ func stopHandler(ctx *gin.Context) {
 	id := ctx.Param("id")
 	log.Printf("[stopHandler] stopping scan id=%s", id)
 
-	if err := scanner.StopScan(id); err != nil {
-		log.Printf("[stopHandler] StopScan error for id=%s: %v", id, err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	status, ok := store.GetStatus(id)
+	if !ok {
+		log.Printf("[stopHandler] status not found for id=%s", id)
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "scan not found"})
 		return
 	}
 
+	if err := scanner.StopScan(id); err != nil {
+		log.Printf("[stopHandler] scan already finished with id=%s", id)
+		ctx.JSON(http.StatusConflict, gin.H{"error": "scan already finished"})
+		return
+	}
 	log.Printf("[stopHandler] stop signal sent for id=%s", id)
-	ctx.JSON(http.StatusOK, gin.H{"status": "stopping"})
+
+	status.Status = model.StatusStopped
+	store.SetStatus(id, status)
+	ctx.JSON(http.StatusOK, status)
 }

@@ -14,7 +14,7 @@ type ScanResult struct {
 	Scanners   []string   `json:"scanners"`
 	StartedAt  time.Time  `json:"started_at"`
 	FinishedAt *time.Time `json:"finished_at,omitempty"`
-	Done       bool       `json:"done"`
+	Status     ScanStatus `json:"status"`
 
 	Result *AggregatedReport `json:"result,omitempty"`
 }
@@ -26,6 +26,15 @@ const (
 	ScannerNikto  ScannerName = "nikto"
 	ScannerZap    ScannerName = "zap"
 	ScannerWapiti ScannerName = "wapiti"
+)
+
+type ScanStatus string
+
+const (
+	StatusRunning ScanStatus = "running"
+	StatusDone    ScanStatus = "done"
+	StatusFailed  ScanStatus = "failed"
+	StatusStopped ScanStatus = "stopped"
 )
 
 type AggregatedReport struct {

@@ -4,7 +4,13 @@
 - zap - weird spider; uri in instances
 
 TODO
-- fix response
+- fix response - bad ips and scanners, rozróżnienie
 - make paths ambiguous
-- add check if report made
 - --no-informational??
+
+
+	//	if _, err := os.Stat(reportFile); err == nil {
+	//		log.Printf("[runZap] zap JSON report saved to %s", reportFile)
+	//	} else {
+	//		log.Printf("[runZap] zap did not produce JSON report for %s (expected: %s): %v", target, reportFile, err)
+	//	}

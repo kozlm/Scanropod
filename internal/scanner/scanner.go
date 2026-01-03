@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/google/uuid"
@@ -64,7 +65,7 @@ func outputsDirFromCtx(ctx context.Context) string {
 // StartScan initializes and runs requested scanners in parallel
 func StartScan(request *ScanRequest) (string, error) {
 	log.Printf("[StartScan] called with request: %+v", request)
-
+	var scanFailed atomic.Bool
 	if request == nil || len(request.Targets) == 0 {
 		log.Printf("[StartScan] error: no targets")
 		return "", errors.New("no targets")
@@ -105,7 +106,7 @@ func StartScan(request *ScanRequest) (string, error) {
 		Targets:   request.Targets,
 		Scanners:  scanners,
 		StartedAt: time.Now(),
-		Done:      false,
+		Status:    model.StatusRunning,
 	}
 	store.SetStatus(id, result)
 
@@ -117,7 +118,10 @@ func StartScan(request *ScanRequest) (string, error) {
 			go func(scannerName string) {
 				defer wGroup.Done()
 				log.Printf("[StartScan] starting scanner: %s", scannerName)
-				runSingleScanner(ctx, scannerName, request.Targets)
+				if err := runSingleScanner(ctx, scannerName, request.Targets); err != nil {
+					log.Printf("[StartScan] scanner %s failed: %v", scannerName, err)
+					scanFailed.Store(true)
+				}
 				log.Printf("[StartScan] scanner finished: %s", scannerName)
 			}(scanner)
 		}
@@ -126,7 +130,12 @@ func StartScan(request *ScanRequest) (string, error) {
 		finished := result
 		now := time.Now()
 		finished.FinishedAt = &now
-		finished.Done = true
+
+		if scanFailed.Load() {
+			finished.Status = model.StatusFailed
+		} else {
+			finished.Status = model.StatusDone
+		}
 
 		store.SetResult(id, finished)
 		store.SetStatus(id, finished)
@@ -157,27 +166,27 @@ func StopScan(id string) error {
 	return fmt.Errorf("no active scan with id %s", id)
 }
 
-func runSingleScanner(ctx context.Context, name string, targets []string) {
+func runSingleScanner(ctx context.Context, name string, targets []string) error {
 	log.Printf("[runSingleScanner] starting scanner '%s' on targets: %v", name, targets)
 
 	switch strings.ToLower(name) {
 	case "nikto":
-		runNikto(ctx, targets)
+		return runNikto(ctx, targets)
 	case "nuclei":
-		runNuclei(ctx, targets)
+		return runNuclei(ctx, targets)
 	case "wapiti":
-		runWapiti(ctx, targets)
+		return runWapiti(ctx, targets)
 	case "zap":
-		runZap(ctx, targets)
+		return runZap(ctx, targets)
 	default:
 		log.Printf("[runSingleScanner] unknown scanner: %s (skipping)", name)
+		return nil
 	}
-	log.Printf("[runSingleScanner] scanner '%s' finished", name)
 }
 
 // --- NIKTO ---
 
-func runNikto(ctx context.Context, targets []string) {
+func runNikto(ctx context.Context, targets []string) error {
 	log.Printf("[runNikto] starting for targets: %v", targets)
 
 	reportDir := reportsDirFromCtx(ctx)
@@ -195,7 +204,7 @@ func runNikto(ctx context.Context, targets []string) {
 		select {
 		case <-ctx.Done():
 			log.Printf("[runNikto] context cancelled, stopping. Last target: %s", target)
-			return
+			return nil
 		default:
 		}
 
@@ -235,14 +244,22 @@ func runNikto(ctx context.Context, targets []string) {
 		} else {
 			log.Printf("[runNikto] nikto output written for %s: %s", target, outputFile)
 		}
+
+		if _, err := os.Stat(reportFile); err == nil {
+			log.Printf("[runNikto] nikto report saved to %s", reportFile)
+		} else {
+			log.Printf("[runNikto] nikto did not produce report for %s (expected: %s): %v", target, reportFile, err)
+			return fmt.Errorf("nikto did not produce report for %s", target)
+		}
 	}
 
 	log.Printf("[runNikto] completed for all targets")
+	return nil
 }
 
 // --- NUCLEI ---
 
-func runNuclei(ctx context.Context, targets []string) {
+func runNuclei(ctx context.Context, targets []string) error {
 	log.Printf("[runNuclei] starting for targets: %v", targets)
 
 	reportDir := reportsDirFromCtx(ctx)
@@ -252,7 +269,7 @@ func runNuclei(ctx context.Context, targets []string) {
 		select {
 		case <-ctx.Done():
 			log.Printf("[runNuclei] context cancelled, stopping. Last target: %s", target)
-			return
+			return nil
 		default:
 		}
 
@@ -290,14 +307,22 @@ func runNuclei(ctx context.Context, targets []string) {
 		} else {
 			log.Printf("[runNuclei] nuclei output written for %s: %s", target, outputFile)
 		}
+
+		if _, err := os.Stat(reportFile); err == nil {
+			log.Printf("[runNuclei] nuclei report saved to %s", reportFile)
+		} else {
+			log.Printf("[runNuclei] nuclei did not produce report for %s (expected: %s): %v", target, reportFile, err)
+			return fmt.Errorf("nuclei did not produce report for %s", target)
+		}
 	}
 
 	log.Printf("[runNuclei] completed for all targets")
+	return nil
 }
 
 // --- WAPITI ---
 
-func runWapiti(ctx context.Context, targets []string) {
+func runWapiti(ctx context.Context, targets []string) error {
 	log.Printf("[runWapiti] starting for targets: %v", targets)
 
 	reportDir := reportsDirFromCtx(ctx)
@@ -316,7 +341,7 @@ func runWapiti(ctx context.Context, targets []string) {
 		select {
 		case <-ctx.Done():
 			log.Printf("[runWapiti] context cancelled, stopping. Last target: %s", target)
-			return
+			return nil
 		default:
 		}
 
@@ -355,14 +380,22 @@ func runWapiti(ctx context.Context, targets []string) {
 		} else {
 			log.Printf("[runWapiti] wapiti output written for %s: %s", target, outputFile)
 		}
+
+		if _, err := os.Stat(reportFile); err == nil {
+			log.Printf("[runWapiti] wapiti report saved to %s", reportFile)
+		} else {
+			log.Printf("[runWapiti] wapiti did not produce report for %s (expected: %s): %v", target, reportFile, err)
+			return fmt.Errorf("wapiti did not produce report for %s", target)
+		}
 	}
 
 	log.Printf("[runWapiti] completed for all targets")
+	return nil
 }
 
 // --- ZAP ---
 
-func runZap(ctx context.Context, targets []string) {
+func runZap(ctx context.Context, targets []string) error {
 	log.Printf("[runZap] starting for targets: %v", targets)
 
 	reportDir := reportsDirFromCtx(ctx)
@@ -372,7 +405,7 @@ func runZap(ctx context.Context, targets []string) {
 		select {
 		case <-ctx.Done():
 			log.Printf("[runZap] context cancelled, stopping. Last target: %s", target)
-			return
+			return nil
 		default:
 		}
 
@@ -415,7 +448,15 @@ func runZap(ctx context.Context, targets []string) {
 		} else {
 			log.Printf("[runZap] zap output written for %s: %s", target, outputFile)
 		}
+
+		if _, err := os.Stat(reportFile); err == nil {
+			log.Printf("[runZap] zap report saved to %s", reportFile)
+		} else {
+			log.Printf("[runZap] zap did not produce report for %s (expected: %s): %v", target, reportFile, err)
+			return fmt.Errorf("zap did not produce report for %s", target)
+		}
 	}
 
 	log.Printf("[runZap] completed for all targets")
+	return nil
 }
