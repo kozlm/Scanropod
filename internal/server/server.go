@@ -3,6 +3,8 @@ package server
 import (
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -13,9 +15,20 @@ import (
 	"github.com/kozlm/scanropods/internal/store"
 )
 
+var baseDir string
+
 func Run() error {
 	store.Init()
 	log.Println("[server] store initialized")
+
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal("[server] could not get working directory")
+	}
+	log.Printf("[server] base dir: %s", dir)
+	baseDir = dir
+
+	scanner.Init(baseDir)
 
 	r := gin.Default()
 
@@ -106,10 +119,10 @@ func resultHandler(ctx *gin.Context) {
 	}
 
 	aggregated, err := aggregate.Build(id, aggregate.BuilderConfig{
-		ZapCSVPath:    "/home/michal/GolandProjects/Scanropod/config/cwe-lists/zap-csv-fix.csv",
-		WapitiCSVPath: "/home/michal/GolandProjects/Scanropod/config/cwe-lists/wapiti-csv.csv",
-		NiktoCSVPath:  "/home/michal/GolandProjects/Scanropod/config/cwe-lists/nikto-csv-fix.csv",
-		NucleiCSVPath: "/home/michal/GolandProjects/Scanropod/config/cwe-lists/nuclei-csv.csv",
+		ZapCSVPath:    filepath.Join(baseDir, "config/cwe-lists/zap-csv-fix.csv"),
+		WapitiCSVPath: filepath.Join(baseDir, "config/cwe-lists/wapiti-csv.csv"),
+		NiktoCSVPath:  filepath.Join(baseDir, "config/cwe-lists/nikto-csv-fix.csv"),
+		NucleiCSVPath: filepath.Join(baseDir, "config/cwe-lists/nuclei-csv.csv"),
 	})
 	if err != nil {
 		log.Printf("[resultHandler] build aggregated report id=%s: %v", id, err)

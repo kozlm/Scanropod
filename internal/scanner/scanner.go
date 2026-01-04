@@ -25,16 +25,24 @@ type ScanRequest = model.ScanRequest
 //	outputs: /.../outputs/<scanID>/...
 //	reports: /.../reports/<scanID>/...
 var (
-	baseOutputsDir   = "/home/michal/GolandProjects/Scanropod/outputs"
-	baseReportsDir   = "/home/michal/GolandProjects/Scanropod/reports"
-	nucleiConfigPath = "/home/michal/GolandProjects/Scanropod/config/nuclei/nuclei-config.yaml"
-	zapConfigPath    = "/home/michal/GolandProjects/Scanropod/config/zap/zap-config.yaml"
+	baseOutputsDir   string
+	baseReportsDir   string
+	nucleiConfigPath string
+	zapConfigPath    string
 
 	activeCancel = struct {
 		sync.Mutex
 		cancelMap map[string]context.CancelFunc
 	}{cancelMap: make(map[string]context.CancelFunc)}
 )
+
+func Init(baseDir string) {
+	baseOutputsDir = filepath.Join(baseDir, "outputs")
+	baseReportsDir = filepath.Join(baseDir, "reports")
+
+	nucleiConfigPath = filepath.Join(baseDir, "config/nuclei/nuclei-config.yaml")
+	zapConfigPath = filepath.Join(baseDir, "config/zap/zap-config.yaml")
+}
 
 type ctxKey string
 

@@ -4,5 +4,3 @@
 - zap - weird spider; uri in instances
 
 TODO
-- make paths ambiguous
-- --no-informational??
