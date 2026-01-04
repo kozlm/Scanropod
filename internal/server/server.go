@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -23,7 +24,8 @@ func Run() error {
 
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatal("[server] could not get working directory")
+		log.Printf("[server] could not get working directory")
+		return errors.New("could not get working directory")
 	}
 	log.Printf("[server] base dir: %s", dir)
 	baseDir = dir
@@ -100,15 +102,15 @@ func resultHandler(ctx *gin.Context) {
 		return
 	}
 
-	if status.Status != model.StatusDone {
-		log.Printf("[resultHandler] scan not ready for id=%s", id)
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "scan not ready"})
-		return
-	}
-
 	if status.Status == model.StatusFailed {
 		log.Printf("[resultHandler] scan failed for id=%s", id)
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "scan failed"})
+		return
+	}
+
+	if status.Status != model.StatusDone {
+		log.Printf("[resultHandler] scan not ready for id=%s", id)
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "scan not ready"})
 		return
 	}
 

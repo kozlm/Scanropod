@@ -99,7 +99,7 @@ func validateScanners(scanners []string) ([]string, error) {
 	for _, scanner := range scanners {
 		scanner = strings.ToLower(strings.TrimSpace(scanner))
 
-		if slices.Contains(allowedScanners, scanner) {
+		if !slices.Contains(allowedScanners, scanner) {
 			return nil, fmt.Errorf("unsupported scanner: %s", scanner)
 		}
 

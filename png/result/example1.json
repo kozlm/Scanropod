@@ -1,1121 +1,1015 @@
 {
-  "id": "3bf09896-c507-44a3-93ac-8375414688bb",
+  "id": "bb372214-d6f9-488d-8a95-ece89688434f",
   "targets": [
     "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
   ],
   "scanners": [
-    "zap",
     "nikto",
+    "zap",
     "nuclei",
     "wapiti"
   ],
-  "started_at": "2025-12-09T01:41:57.975197692+01:00",
-  "finished_at": "2025-12-09T01:46:20.014042815+01:00",
-  "done": true,
+  "started_at": "2026-01-04T18:26:02.482267282+01:00",
+  "finished_at": "2026-01-04T18:28:38.946342845+01:00",
+  "status": "done",
   "result": {
-    "scan_date": "2025-12-09T00:46:20.014042113Z",
-    "targets": [
-      {
-        "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r",
-        "cwes": [
-          {
-            "cwe_id": "CWE-79",
-            "scanners": [
-              {
-                "name": "zap",
-                "findings": [
-                  {
-                    "alert": "Cross Site Scripting (Reflected)",
-                    "name": "Cross Site Scripting (Reflected)",
-                    "riskcode": "3",
-                    "confidence": "2",
-                    "desc": "<p>Cross-site Scripting (XSS) is an attack technique that involves echoing attacker-supplied code into a user's browser instance. A browser instance can be a standard web browser client, or a browser object embedded in a software product such as the browser within WinAmp, an RSS reader, or an email client. The code itself is usually written in HTML/JavaScript, but may also extend to VBScript, ActiveX, Java, Flash, or any other browser-supported technology.</p><p>When an attacker gets a user's browser to execute his/her code, the code will run within the security context (or zone) of the hosting web site. With this level of privilege, the code has the ability to read, modify and transmit any sensitive data accessible by the browser. A Cross-site Scripted user could have his/her account hijacked (cookie theft), their browser redirected to another location, or possibly shown fraudulent content delivered by the web site they are visiting. Cross-site Scripting attacks essentially compromise the trust relationship between a user and the web site. Applications utilizing browser object instances which load content from the file system may execute code under the local machine zone allowing for system compromise.</p><p></p><p>There are three types of Cross-site Scripting attacks: non-persistent, persistent and DOM-based.</p><p>Non-persistent attacks and DOM-based attacks require a user to either visit a specially crafted link laced with malicious code, or visit a malicious web page containing a web form, which when posted to the vulnerable site, will mount the attack. Using a malicious form will oftentimes take place when the vulnerable resource only accepts HTTP POST requests. In such a case, the form can be submitted automatically, without the victim's knowledge (e.g. by using JavaScript). Upon clicking on the malicious link or submitting the malicious form, the XSS payload will get echoed back and will get interpreted by the user's browser and execute. Another technique to send almost arbitrary requests (GET and POST) is by using an embedded client, such as Adobe Flash.</p><p>Persistent attacks occur when the malicious code is submitted to a web site where it's stored for a period of time. Examples of an attacker's favorite targets often include message board posts, web mail messages, and web chat software. The unsuspecting user is not required to interact with any additional site/link (e.g. an attacker site or a malicious link sent via email), just simply view the web page containing the code.</p>",
-                    "solution": "<p>Phase: Architecture and Design</p><p>Use a vetted library or framework that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid.</p><p>Examples of libraries and frameworks that make it easier to generate properly encoded output include Microsoft's Anti-XSS library, the OWASP ESAPI Encoding module, and Apache Wicket.</p><p></p><p>Phases: Implementation; Architecture and Design</p><p>Understand the context in which your data will be used and the encoding that will be expected. This is especially important when transmitting data between different components, or when generating outputs that can contain multiple encodings at the same time, such as web pages or multi-part mail messages. Study all expected communication protocols and data representations to determine the required encoding strategies.</p><p>For any data that will be output to another web page, especially any data that was received from external inputs, use the appropriate encoding on all non-alphanumeric characters.</p><p>Consult the XSS Prevention Cheat Sheet for more details on the types of encoding and escaping that are needed.</p><p></p><p>Phase: Architecture and Design</p><p>For any security checks that are performed on the client side, ensure that these checks are duplicated on the server side, in order to avoid CWE-602. Attackers can bypass the client-side checks by modifying values after the checks have been performed, or by changing the client to remove the client-side checks entirely. Then, these modified values would be submitted to the server.</p><p></p><p>If available, use structured mechanisms that automatically enforce the separation between data and code. These mechanisms may be able to provide the relevant quoting, encoding, and validation automatically, instead of relying on the developer to provide this capability at every point where output is generated.</p><p></p><p>Phase: Implementation</p><p>For every web page that is generated, use and specify a character encoding such as ISO-8859-1 or UTF-8. When an encoding is not specified, the web browser may choose a different encoding by guessing which encoding is actually being used by the web page. This can cause the web browser to treat certain sequences as special, opening up the client to subtle XSS attacks. See CWE-116 for more mitigations related to encoding/escaping.</p><p></p><p>To help mitigate XSS attacks against the user's session cookie, set the session cookie to be HttpOnly. In browsers that support the HttpOnly feature (such as more recent versions of Internet Explorer and Firefox), this attribute can prevent the user's session cookie from being accessible to malicious client-side scripts that use document.cookie. This is not a complete solution, since HttpOnly is not supported by all browsers. More importantly, XMLHTTPRequest and other powerful browser technologies provide read access to HTTP headers, including the Set-Cookie header in which the HttpOnly flag is set.</p><p></p><p>Assume all input is malicious. Use an \"accept known good\" input validation strategy, i.e., use an allow list of acceptable inputs that strictly conform to specifications. Reject any input that does not strictly conform to specifications, or transform it into something that does. Do not rely exclusively on looking for malicious or malformed inputs (i.e., do not rely on a deny list). However, deny lists can be useful for detecting potential attacks or determining which inputs are so malformed that they should be rejected outright.</p><p></p><p>When performing input validation, consider all potentially relevant properties, including length, type of input, the full range of acceptable values, missing or extra inputs, syntax, consistency across related fields, and conformance to business rules. As an example of business rule logic, \"boat\" may be syntactically valid because it only contains alphanumeric characters, but it is not valid if you are expecting colors such as \"red\" or \"blue.\"</p><p></p><p>Ensure that you perform input validation at well-defined interfaces within the application. This will help protect the application even if a component is reused or moved elsewhere.</p><p>\t</p>",
-                    "reference": "<p>https://owasp.org/www-community/attacks/xss/</p><p>https://cwe.mitre.org/data/definitions/79.html</p>",
-                    "method": "GET",
-                    "param": "name",
-                    "evidence": "</pre><scrIpt>alert(1);</scRipt><pre>",
-                    "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/?name=%3C%2Fpre%3E%3CscrIpt%3Ealert%281%29%3B%3C%2FscRipt%3E%3Cpre%3E"
-                  }
-                ]
+    "scan_date": "2026-01-04T17:32:45.388246485Z",
+    "findings": {
+      "http://192.168.0.156/DVWA/vulnerabilities/xss_r": {
+        "0": {
+          "nikto": [
+            {
+              "id": "013587",
+              "method": "GET",
+              "msg": "Suggested security header missing: permissions-policy.",
+              "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy",
+              "url": "/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "id": "013587",
+              "method": "GET",
+              "msg": "Suggested security header missing: strict-transport-security.",
+              "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security",
+              "url": "/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "id": "013587",
+              "method": "GET",
+              "msg": "Suggested security header missing: referrer-policy.",
+              "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy",
+              "url": "/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "id": "013587",
+              "method": "GET",
+              "msg": "Suggested security header missing: content-security-policy.",
+              "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP",
+              "url": "/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "id": "013587",
+              "method": "GET",
+              "msg": "Suggested security header missing: x-content-type-options.",
+              "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options",
+              "url": "/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "id": "999990",
+              "method": "OPTIONS",
+              "msg": "OPTIONS: Allowed HTTP Methods: OPTIONS, HEAD, GET, POST .",
+              "references": "",
+              "url": "/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "id": "999967",
+              "method": "BBVPQQRH",
+              "msg": "/: Web Server returns a valid response with junk HTTP methods which may cause false positives.",
+              "references": "",
+              "url": "/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "id": "001384",
+              "method": "GET",
+              "msg": "PHP reveals potentially sensitive information via certain HTTP requests that contain specific QUERY strings.",
+              "references": "OSVDB-12184",
+              "url": "/DVWA/vulnerabilities/xss_r/?=PHPB8B5F2A0-3C92-11d3-A3A9-4C7B08C10000"
+            }
+          ],
+          "nuclei": [
+            {
+              "template_id": "xss-fuzz",
+              "info": {
+                "name": "Fuzzing Parameters - Cross-Site Scripting",
+                "author": [
+                  "kazet"
+                ],
+                "tags": [
+                  "xss",
+                  "generic",
+                  "vuln"
+                ],
+                "description": "Cross-site scripting was discovered via a search for reflected parameter values in the server response via GET-requests.\n",
+                "severity": "medium",
+                "metadata": {
+                  "max-request": 29,
+                  "parameters": "q,s,search,id,action,keyword,query,page,keywords,url,view,cat,name,key,p,month,page_id,password,terms,token,type,unsubscribe_token,api,api_key,begindate,callback,categoryid,csrf_token,email,emailto,enddate,immagine,item,jsonp,l,lang,list_type,year"
+                },
+                "classification": {
+                  "cve-id": null,
+                  "cwe-id": [
+                    "cwe-79"
+                  ]
+                }
               },
-              {
-                "name": "wapiti",
-                "findings": [
-                  {
-                    "name": "Reflected Cross Site Scripting",
-                    "method": "GET",
-                    "info": "Reflected Cross Site Scripting vulnerability found via injection in the parameter name",
-                    "level": 2,
-                    "module": "xss",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/?name=%3CScRiPt%3Ealert%28%27wbvpim75r7%27%29%3C%2FsCrIpT%3E HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\ncookie: security=low; PHPSESSID=99jqurbg1i17i6j0htktvgk9vh",
-                    "path": "/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "cwe_id": "CWE-1021",
-            "scanners": [
-              {
-                "name": "zap",
-                "findings": [
-                  {
-                    "alert": "Missing Anti-clickjacking Header",
-                    "name": "Missing Anti-clickjacking Header",
-                    "riskcode": "2",
-                    "confidence": "2",
-                    "desc": "<p>The response does not protect against 'ClickJacking' attacks. It should include either Content-Security-Policy with 'frame-ancestors' directive or X-Frame-Options.</p>",
-                    "solution": "<p>Modern Web browsers support the Content-Security-Policy and X-Frame-Options HTTP headers. Ensure one of them is set on all web pages returned by your site/app.</p><p>If you expect the page to be framed only by pages on your server (e.g. it's part of a FRAMESET) then you'll want to use SAMEORIGIN, otherwise if you never expect the page to be framed, you should use DENY. Alternatively consider implementing Content Security Policy's \"frame-ancestors\" directive.</p>",
-                    "reference": "<p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options</p>",
-                    "method": "GET",
-                    "param": "x-frame-options",
-                    "evidence": "",
-                    "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
+              "type": "http",
+              "request": "GET /DVWA/vulnerabilities/xss_r/?name=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-name%27%29%3E&json=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-json%27%29%3E&id_base=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-id_base%27%29%3E&where=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-where%27%29%3E&request=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-request%27%29%3E&notes=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-notes%27%29%3E&img=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-img%27%29%3E&a=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-a%27%29%3E&menu-item=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-menu-item%27%29%3E&xml=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-xml%27%29%3E&columns=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-columns%27%29%3E&service=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-service%27%29%3E&site_id=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-site_id%27%29%3E HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Knoppix; Linux i686) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "template_id": "missing-cookie-samesite-strict",
+              "info": {
+                "name": "Missing Cookie SameSite Strict",
+                "author": [
+                  "lucky0x0d",
+                  "pulsesecurity.co.nz"
+                ],
+                "tags": [
+                  "misconfig",
+                  "samesite",
+                  "cookie",
+                  "vuln"
+                ],
+                "description": "Identified cookies that lacked the samesite=strict attribute, which prevented enforcement of restrictions on cross-domain cookie transmission.\n",
+                "reference": [
+                  "https://pulsesecurity.co.nz/articles/samesite-lax-csrf"
+                ],
+                "severity": "info",
+                "metadata": {
+                  "max-request": 1,
+                  "verified": true
+                },
+                "classification": {
+                  "cve-id": null,
+                  "cwe-id": [
+                    "cwe-693"
+                  ],
+                  "cvss-metrics": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N"
+                }
               },
-              {
-                "name": "wapiti",
-                "findings": [
-                  {
-                    "name": "Clickjacking Protection",
-                    "method": "GET",
-                    "info": "X-Frame-Options is not set",
-                    "level": 1,
-                    "module": "http_headers",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                    "path": "/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "cwe_id": "CWE-1004",
-            "scanners": [
-              {
-                "name": "zap",
-                "findings": [
-                  {
-                    "alert": "Cookie No HttpOnly Flag",
-                    "name": "Cookie No HttpOnly Flag",
-                    "riskcode": "1",
-                    "confidence": "2",
-                    "desc": "<p>A cookie has been set without the HttpOnly flag, which means that the cookie can be accessed by JavaScript. If a malicious script can be run on this page then the cookie will be accessible and can be transmitted to another site. If this is a session cookie then session hijacking may be possible.</p>",
-                    "solution": "<p>Ensure that the HttpOnly flag is set for all cookies.</p>",
-                    "reference": "<p>https://owasp.org/www-community/HttpOnly</p>",
-                    "method": "GET",
-                    "param": "PHPSESSID",
-                    "evidence": "Set-Cookie: PHPSESSID",
-                    "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
+              "type": "http",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Knoppix; Linux x86_64; rv:133.0) Gecko/20100101 Firefox/133.0\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "template_id": "tech-detect",
+              "info": {
+                "name": "Wappalyzer Technology Detection",
+                "author": [
+                  "hakluke",
+                  "righettod"
+                ],
+                "tags": [
+                  "tech",
+                  "discovery"
+                ],
+                "severity": "info",
+                "metadata": {
+                  "max-request": 1
+                }
               },
-              {
-                "name": "wapiti",
-                "findings": [
-                  {
-                    "name": "HttpOnly Flag cookie",
-                    "method": "GET",
-                    "info": "HttpOnly flag is not set on the cookie 'security' set at 'http://192.168.0.156/DVWA/vulnerabilities/xss_r/'",
-                    "level": 1,
-                    "module": "cookieflags",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                    "path": "/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "name": "HttpOnly Flag cookie",
-                    "method": "GET",
-                    "info": "HttpOnly flag is not set on the cookie 'PHPSESSID' set at 'http://192.168.0.156/DVWA/vulnerabilities/xss_r/'",
-                    "level": 1,
-                    "module": "cookieflags",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                    "path": "/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
+              "type": "http",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Knoppix; Linux x86_64; rv:133.0) Gecko/20100101 Firefox/133.0\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "template_id": "http-missing-security-headers",
+              "info": {
+                "name": "HTTP Missing Security Headers",
+                "author": [
+                  "socketz",
+                  "geeknik",
+                  "g4l1t0",
+                  "convisoappsec",
+                  "kurohost",
+                  "dawid-czarnecki",
+                  "forgedhallpass",
+                  "jub0bs",
+                  "userdehghani"
+                ],
+                "tags": [
+                  "misconfig",
+                  "headers",
+                  "generic",
+                  "vuln"
+                ],
+                "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
+                "severity": "info",
+                "metadata": {
+                  "max-request": 1
+                }
               },
-              {
-                "name": "nuclei",
-                "findings": [
-                  {
-                    "template_id": "cookies-without-httponly",
-                    "info": {
-                      "name": "Cookies without HttpOnly attribute - Detect",
-                      "author": [
-                        "rj coleman",
-                        "mr.bobo hp"
-                      ],
-                      "tags": [
-                        "misconfig",
-                        "http",
-                        "cookie",
-                        "generic",
-                        "vuln"
-                      ],
-                      "description": "Checks whether cookies in the HTTP response contain the HttpOnly attribute. If the HttpOnly flag is set, it means that the cookie is HTTP-only\n",
-                      "impact": "Lack of HttpOnly flag on cookies increases the risk of client-side attacks, compromising user session security and data privacy.\n",
-                      "reference": [
-                        "https://owasp.org/www-community/HttpOnly"
-                      ],
-                      "severity": "info",
-                      "metadata": {
-                        "max-request": 1,
-                        "verified": true
-                      },
-                      "classification": {
-                        "cve-id": null,
-                        "cwe-id": null,
-                        "cvss-metrics": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N"
-                      },
-                      "remediation": "Ensure that all cookies are set with the HttpOnly attribute to prevent client-side access.\n"
-                    },
-                    "type": "javascript",
-                    "request": "content = template.http_all_headers\nconst setCookieLines = content\n    .split(/\\r\\n/)\n    .filter(line => line.trim().toLowerCase().startsWith('set-cookie:'));\n\nconst nonHttpOnlyCookies = setCookieLines.filter(line => !line.toLowerCase().includes('httponly'));\n\nconst cookieNames = nonHttpOnlyCookies.map(line => {\n    const match = line.match(/set-cookie:\\s*([^=]+)=/i);\n    return match ? match[1] : null;\n}).filter(Boolean);\ncookieNames",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "cwe_id": "CWE-1275",
-            "scanners": [
-              {
-                "name": "zap",
-                "findings": [
-                  {
-                    "alert": "Cookie without SameSite Attribute",
-                    "name": "Cookie without SameSite Attribute",
-                    "riskcode": "1",
-                    "confidence": "2",
-                    "desc": "<p>A cookie has been set without the SameSite attribute, which means that the cookie can be sent as a result of a 'cross-site' request. The SameSite attribute is an effective counter measure to cross-site request forgery, cross-site script inclusion, and timing attacks.</p>",
-                    "solution": "<p>Ensure that the SameSite attribute is set to either 'lax' or ideally 'strict' for all cookies.</p>",
-                    "reference": "<p>https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-cookie-same-site</p>",
-                    "method": "GET",
-                    "param": "PHPSESSID",
-                    "evidence": "Set-Cookie: PHPSESSID",
-                    "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "cwe_id": "0",
-            "scanners": [
-              {
-                "name": "nikto",
-                "findings": [
-                  {
-                    "id": "013587",
-                    "method": "GET",
-                    "msg": "Suggested security header missing: content-security-policy.",
-                    "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP",
-                    "url": "/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "id": "013587",
-                    "method": "GET",
-                    "msg": "Suggested security header missing: strict-transport-security.",
-                    "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security",
-                    "url": "/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "id": "013587",
-                    "method": "GET",
-                    "msg": "Suggested security header missing: x-content-type-options.",
-                    "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options",
-                    "url": "/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "id": "013587",
-                    "method": "GET",
-                    "msg": "Suggested security header missing: referrer-policy.",
-                    "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy",
-                    "url": "/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "id": "013587",
-                    "method": "GET",
-                    "msg": "Suggested security header missing: permissions-policy.",
-                    "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy",
-                    "url": "/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "id": "999990",
-                    "method": "OPTIONS",
-                    "msg": "OPTIONS: Allowed HTTP Methods: HEAD, GET, POST, OPTIONS .",
-                    "references": "",
-                    "url": "/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "id": "999967",
-                    "method": "CXUFAGAM",
-                    "msg": "/: Web Server returns a valid response with junk HTTP methods which may cause false positives.",
-                    "references": "",
-                    "url": "/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "id": "001384",
-                    "method": "GET",
-                    "msg": "PHP reveals potentially sensitive information via certain HTTP requests that contain specific QUERY strings.",
-                    "references": "OSVDB-12184",
-                    "url": "/DVWA/vulnerabilities/xss_r/?=PHPB8B5F2A0-3C92-11d3-A3A9-4C7B08C10000"
-                  }
-                ]
+              "type": "http",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Mac OS X 13_2) AppleWebKit/537.36 (KHTML, like Gecko) Edge/106.0 Safari/537.36\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "template_id": "http-missing-security-headers",
+              "info": {
+                "name": "HTTP Missing Security Headers",
+                "author": [
+                  "socketz",
+                  "geeknik",
+                  "g4l1t0",
+                  "convisoappsec",
+                  "kurohost",
+                  "dawid-czarnecki",
+                  "forgedhallpass",
+                  "jub0bs",
+                  "userdehghani"
+                ],
+                "tags": [
+                  "misconfig",
+                  "headers",
+                  "generic",
+                  "vuln"
+                ],
+                "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
+                "severity": "info",
+                "metadata": {
+                  "max-request": 1
+                }
               },
-              {
-                "name": "nuclei",
-                "findings": [
-                  {
-                    "template_id": "xss-fuzz",
-                    "info": {
-                      "name": "Fuzzing Parameters - Cross-Site Scripting",
-                      "author": [
-                        "kazet"
-                      ],
-                      "tags": [
-                        "xss",
-                        "generic",
-                        "vuln"
-                      ],
-                      "description": "Cross-site scripting was discovered via a search for reflected parameter values in the server response via GET-requests.\n",
-                      "severity": "medium",
-                      "metadata": {
-                        "max-request": 29,
-                        "parameters": "q,s,search,id,action,keyword,query,page,keywords,url,view,cat,name,key,p,month,page_id,password,terms,token,type,unsubscribe_token,api,api_key,begindate,callback,categoryid,csrf_token,email,emailto,enddate,immagine,item,jsonp,l,lang,list_type,year"
-                      },
-                      "classification": {
-                        "cve-id": null,
-                        "cwe-id": [
-                          "cwe-79"
-                        ]
-                      }
-                    },
-                    "type": "http",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/?name=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-name%27%29%3E&json=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-json%27%29%3E&id_base=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-id_base%27%29%3E&where=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-where%27%29%3E&request=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-request%27%29%3E&notes=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-notes%27%29%3E&img=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-img%27%29%3E&a=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-a%27%29%3E&menu-item=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-menu-item%27%29%3E&xml=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-xml%27%29%3E&columns=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-columns%27%29%3E&service=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-service%27%29%3E&site_id=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-site_id%27%29%3E HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Kubuntu; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "template_id": "apache-detect",
-                    "info": {
-                      "name": "Apache Detection",
-                      "author": [
-                        "philippedelteil"
-                      ],
-                      "tags": [
-                        "tech",
-                        "apache",
-                        "discovery"
-                      ],
-                      "description": "Some Apache servers have the version on the response header. The OpenSSL version can be also obtained",
-                      "severity": "info",
-                      "metadata": {
-                        "max-request": 1
-                      }
-                    },
-                    "type": "http",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Kubuntu; Linux x86_64; rv:131.0) Gecko/20100101 Firefox/131.0\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "template_id": "php-detect",
-                    "info": {
-                      "name": "PHP Detect",
-                      "author": [
-                        "y0no"
-                      ],
-                      "tags": [
-                        "tech",
-                        "php",
-                        "discovery"
-                      ],
-                      "severity": "info",
-                      "metadata": {
-                        "max-request": 1,
-                        "product": "php",
-                        "shodan-query": "X-Powered-By: PHP",
-                        "vendor": "php",
-                        "verified": true
-                      },
-                      "classification": {
-                        "cve-id": null,
-                        "cwe-id": null,
-                        "cpe": "cpe:2.3:a:php:php:*:*:*:*:*:*:*:*"
-                      }
-                    },
-                    "type": "http",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Kubuntu; Linux x86_64; rv:131.0) Gecko/20100101 Firefox/131.0\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "template_id": "missing-cookie-samesite-strict",
-                    "info": {
-                      "name": "Missing Cookie SameSite Strict",
-                      "author": [
-                        "lucky0x0d",
-                        "pulsesecurity.co.nz"
-                      ],
-                      "tags": [
-                        "misconfig",
-                        "samesite",
-                        "cookie",
-                        "vuln"
-                      ],
-                      "description": "Identified cookies that lacked the samesite=strict attribute, which prevented enforcement of restrictions on cross-domain cookie transmission.\n",
-                      "reference": [
-                        "https://pulsesecurity.co.nz/articles/samesite-lax-csrf"
-                      ],
-                      "severity": "info",
-                      "metadata": {
-                        "max-request": 1,
-                        "verified": true
-                      },
-                      "classification": {
-                        "cve-id": null,
-                        "cwe-id": [
-                          "cwe-693"
-                        ],
-                        "cvss-metrics": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N"
-                      }
-                    },
-                    "type": "http",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Fedora; Linux i686) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "template_id": "tech-detect",
-                    "info": {
-                      "name": "Wappalyzer Technology Detection",
-                      "author": [
-                        "hakluke",
-                        "righettod"
-                      ],
-                      "tags": [
-                        "tech",
-                        "discovery"
-                      ],
-                      "severity": "info",
-                      "metadata": {
-                        "max-request": 1
-                      }
-                    },
-                    "type": "http",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Fedora; Linux i686) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "template_id": "http-missing-security-headers",
-                    "info": {
-                      "name": "HTTP Missing Security Headers",
-                      "author": [
-                        "socketz",
-                        "geeknik",
-                        "g4l1t0",
-                        "convisoappsec",
-                        "kurohost",
-                        "dawid-czarnecki",
-                        "forgedhallpass",
-                        "jub0bs",
-                        "userdehghani"
-                      ],
-                      "tags": [
-                        "misconfig",
-                        "headers",
-                        "generic",
-                        "vuln"
-                      ],
-                      "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
-                      "severity": "info",
-                      "metadata": {
-                        "max-request": 1
-                      }
-                    },
-                    "type": "http",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Debian; Linux i686; rv:127.0) Gecko/20100101 Firefox/127.0\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "template_id": "http-missing-security-headers",
-                    "info": {
-                      "name": "HTTP Missing Security Headers",
-                      "author": [
-                        "socketz",
-                        "geeknik",
-                        "g4l1t0",
-                        "convisoappsec",
-                        "kurohost",
-                        "dawid-czarnecki",
-                        "forgedhallpass",
-                        "jub0bs",
-                        "userdehghani"
-                      ],
-                      "tags": [
-                        "misconfig",
-                        "headers",
-                        "generic",
-                        "vuln"
-                      ],
-                      "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
-                      "severity": "info",
-                      "metadata": {
-                        "max-request": 1
-                      }
-                    },
-                    "type": "http",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Debian; Linux i686; rv:127.0) Gecko/20100101 Firefox/127.0\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "template_id": "http-missing-security-headers",
-                    "info": {
-                      "name": "HTTP Missing Security Headers",
-                      "author": [
-                        "socketz",
-                        "geeknik",
-                        "g4l1t0",
-                        "convisoappsec",
-                        "kurohost",
-                        "dawid-czarnecki",
-                        "forgedhallpass",
-                        "jub0bs",
-                        "userdehghani"
-                      ],
-                      "tags": [
-                        "misconfig",
-                        "headers",
-                        "generic",
-                        "vuln"
-                      ],
-                      "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
-                      "severity": "info",
-                      "metadata": {
-                        "max-request": 1
-                      }
-                    },
-                    "type": "http",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Debian; Linux i686; rv:127.0) Gecko/20100101 Firefox/127.0\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "template_id": "http-missing-security-headers",
-                    "info": {
-                      "name": "HTTP Missing Security Headers",
-                      "author": [
-                        "socketz",
-                        "geeknik",
-                        "g4l1t0",
-                        "convisoappsec",
-                        "kurohost",
-                        "dawid-czarnecki",
-                        "forgedhallpass",
-                        "jub0bs",
-                        "userdehghani"
-                      ],
-                      "tags": [
-                        "misconfig",
-                        "headers",
-                        "generic",
-                        "vuln"
-                      ],
-                      "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
-                      "severity": "info",
-                      "metadata": {
-                        "max-request": 1
-                      }
-                    },
-                    "type": "http",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Debian; Linux i686; rv:127.0) Gecko/20100101 Firefox/127.0\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "template_id": "http-missing-security-headers",
-                    "info": {
-                      "name": "HTTP Missing Security Headers",
-                      "author": [
-                        "socketz",
-                        "geeknik",
-                        "g4l1t0",
-                        "convisoappsec",
-                        "kurohost",
-                        "dawid-czarnecki",
-                        "forgedhallpass",
-                        "jub0bs",
-                        "userdehghani"
-                      ],
-                      "tags": [
-                        "misconfig",
-                        "headers",
-                        "generic",
-                        "vuln"
-                      ],
-                      "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
-                      "severity": "info",
-                      "metadata": {
-                        "max-request": 1
-                      }
-                    },
-                    "type": "http",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Debian; Linux i686; rv:127.0) Gecko/20100101 Firefox/127.0\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "template_id": "http-missing-security-headers",
-                    "info": {
-                      "name": "HTTP Missing Security Headers",
-                      "author": [
-                        "socketz",
-                        "geeknik",
-                        "g4l1t0",
-                        "convisoappsec",
-                        "kurohost",
-                        "dawid-czarnecki",
-                        "forgedhallpass",
-                        "jub0bs",
-                        "userdehghani"
-                      ],
-                      "tags": [
-                        "misconfig",
-                        "headers",
-                        "generic",
-                        "vuln"
-                      ],
-                      "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
-                      "severity": "info",
-                      "metadata": {
-                        "max-request": 1
-                      }
-                    },
-                    "type": "http",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Debian; Linux i686; rv:127.0) Gecko/20100101 Firefox/127.0\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "template_id": "http-missing-security-headers",
-                    "info": {
-                      "name": "HTTP Missing Security Headers",
-                      "author": [
-                        "socketz",
-                        "geeknik",
-                        "g4l1t0",
-                        "convisoappsec",
-                        "kurohost",
-                        "dawid-czarnecki",
-                        "forgedhallpass",
-                        "jub0bs",
-                        "userdehghani"
-                      ],
-                      "tags": [
-                        "misconfig",
-                        "headers",
-                        "generic",
-                        "vuln"
-                      ],
-                      "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
-                      "severity": "info",
-                      "metadata": {
-                        "max-request": 1
-                      }
-                    },
-                    "type": "http",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Debian; Linux i686; rv:127.0) Gecko/20100101 Firefox/127.0\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "template_id": "http-missing-security-headers",
-                    "info": {
-                      "name": "HTTP Missing Security Headers",
-                      "author": [
-                        "socketz",
-                        "geeknik",
-                        "g4l1t0",
-                        "convisoappsec",
-                        "kurohost",
-                        "dawid-czarnecki",
-                        "forgedhallpass",
-                        "jub0bs",
-                        "userdehghani"
-                      ],
-                      "tags": [
-                        "misconfig",
-                        "headers",
-                        "generic",
-                        "vuln"
-                      ],
-                      "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
-                      "severity": "info",
-                      "metadata": {
-                        "max-request": 1
-                      }
-                    },
-                    "type": "http",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Debian; Linux i686; rv:127.0) Gecko/20100101 Firefox/127.0\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "template_id": "http-missing-security-headers",
-                    "info": {
-                      "name": "HTTP Missing Security Headers",
-                      "author": [
-                        "socketz",
-                        "geeknik",
-                        "g4l1t0",
-                        "convisoappsec",
-                        "kurohost",
-                        "dawid-czarnecki",
-                        "forgedhallpass",
-                        "jub0bs",
-                        "userdehghani"
-                      ],
-                      "tags": [
-                        "misconfig",
-                        "headers",
-                        "generic",
-                        "vuln"
-                      ],
-                      "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
-                      "severity": "info",
-                      "metadata": {
-                        "max-request": 1
-                      }
-                    },
-                    "type": "http",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Debian; Linux i686; rv:127.0) Gecko/20100101 Firefox/127.0\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "template_id": "http-missing-security-headers",
-                    "info": {
-                      "name": "HTTP Missing Security Headers",
-                      "author": [
-                        "socketz",
-                        "geeknik",
-                        "g4l1t0",
-                        "convisoappsec",
-                        "kurohost",
-                        "dawid-czarnecki",
-                        "forgedhallpass",
-                        "jub0bs",
-                        "userdehghani"
-                      ],
-                      "tags": [
-                        "misconfig",
-                        "headers",
-                        "generic",
-                        "vuln"
-                      ],
-                      "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
-                      "severity": "info",
-                      "metadata": {
-                        "max-request": 1
-                      }
-                    },
-                    "type": "http",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Debian; Linux i686; rv:127.0) Gecko/20100101 Firefox/127.0\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "template_id": "http-missing-security-headers",
-                    "info": {
-                      "name": "HTTP Missing Security Headers",
-                      "author": [
-                        "socketz",
-                        "geeknik",
-                        "g4l1t0",
-                        "convisoappsec",
-                        "kurohost",
-                        "dawid-czarnecki",
-                        "forgedhallpass",
-                        "jub0bs",
-                        "userdehghani"
-                      ],
-                      "tags": [
-                        "misconfig",
-                        "headers",
-                        "generic",
-                        "vuln"
-                      ],
-                      "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
-                      "severity": "info",
-                      "metadata": {
-                        "max-request": 1
-                      }
-                    },
-                    "type": "http",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Debian; Linux i686; rv:127.0) Gecko/20100101 Firefox/127.0\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "template_id": "top-xss-params",
-                    "info": {
-                      "name": "Top 38 Parameters - Cross-Site Scripting",
-                      "author": [
-                        "foulenzer",
-                        "geeknik"
-                      ],
-                      "tags": [
-                        "xss",
-                        "generic",
-                        "vuln"
-                      ],
-                      "description": "Cross-site scripting was discovered via a search for reflected parameter values in the server response via GET-requests.",
-                      "severity": "high",
-                      "metadata": {
-                        "max-request": 3,
-                        "parameters": "q,s,search,id,action,keyword,query,page,keywords,url,view,cat,name,key,p,month,page_id,password,terms,token,type,unsubscribe_token,api,api_key,begindate,callback,categoryid,csrf_token,email,emailto,enddate,immagine,item,jsonp,l,lang,list_type,year"
-                      },
-                      "classification": {
-                        "cve-id": null,
-                        "cwe-id": [
-                          "cwe-79"
-                        ],
-                        "cvss-metrics": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:L/A:N",
-                        "cvss-score": 7.2
-                      }
-                    },
-                    "type": "http",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/?q=%27%3E%22%3Csvg%2Fonload=confirm%28%27q%27%29%3E&s=%27%3E%22%3Csvg%2Fonload=confirm%28%27s%27%29%3E&search=%27%3E%22%3Csvg%2Fonload=confirm%28%27search%27%29%3E&id=%27%3E%22%3Csvg%2Fonload=confirm%28%27id%27%29%3E&action=%27%3E%22%3Csvg%2Fonload=confirm%28%27action%27%29%3E&keyword=%27%3E%22%3Csvg%2Fonload=confirm%28%27keyword%27%29%3E&query=%27%3E%22%3Csvg%2Fonload=confirm%28%27query%27%29%3E&page=%27%3E%22%3Csvg%2Fonload=confirm%28%27page%27%29%3E&keywords=%27%3E%22%3Csvg%2Fonload=confirm%28%27keywords%27%29%3E&url=%27%3E%22%3Csvg%2Fonload=confirm%28%27url%27%29%3E&view=%27%3E%22%3Csvg%2Fonload=confirm%28%27view%27%29%3E&cat=%27%3E%22%3Csvg%2Fonload=confirm%28%27cat%27%29%3E&name=%27%3E%22%3Csvg%2Fonload=confirm%28%27name%27%29%3E&key=%27%3E%22%3Csvg%2Fonload=confirm%28%27key%27%29%3E&p=%27%3E%22%3Csvg%2Fonload=confirm%28%27p%27%29%3E HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Windows NT 11.0) AppleWebKit/537.36 (KHTML, like Gecko) Safari/103.0 Safari/537.36\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
+              "type": "http",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Mac OS X 13_2) AppleWebKit/537.36 (KHTML, like Gecko) Edge/106.0 Safari/537.36\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "template_id": "http-missing-security-headers",
+              "info": {
+                "name": "HTTP Missing Security Headers",
+                "author": [
+                  "socketz",
+                  "geeknik",
+                  "g4l1t0",
+                  "convisoappsec",
+                  "kurohost",
+                  "dawid-czarnecki",
+                  "forgedhallpass",
+                  "jub0bs",
+                  "userdehghani"
+                ],
+                "tags": [
+                  "misconfig",
+                  "headers",
+                  "generic",
+                  "vuln"
+                ],
+                "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
+                "severity": "info",
+                "metadata": {
+                  "max-request": 1
+                }
               },
-              {
-                "name": "zap",
-                "findings": [
-                  {
-                    "alert": "Modern Web Application",
-                    "name": "Modern Web Application",
-                    "riskcode": "0",
-                    "confidence": "2",
-                    "desc": "<p>The application appears to be a modern web application. If you need to explore it automatically then the Ajax Spider may well be more effective than the standard one.</p>",
-                    "solution": "<p>This is an informational alert and so no changes are required.</p>",
-                    "reference": "",
-                    "method": "GET",
-                    "param": "",
-                    "evidence": "<a href=\"#\" onclick=\"javascript:toggleTheme();\" class=\"theme-icon\" title=\"Toggle theme between light and dark.\">\n                    <img src=\"../../dvwa/images/theme-light-dark.png\" alt=\"Damn Vulnerable Web Application\" />\n                </a>",
-                    "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "alert": "Session Management Response Identified",
-                    "name": "Session Management Response Identified",
-                    "riskcode": "0",
-                    "confidence": "2",
-                    "desc": "<p>The given response has been identified as containing a session management token. The 'Other Info' field contains a set of header tokens that can be used in the Header Based Session Management Method. If the request is in a context which has a Session Management Method set to \"Auto-Detect\" then this rule will change the session management to use the tokens identified.</p>",
-                    "solution": "<p>This is an informational alert rather than a vulnerability and so there is nothing to fix.</p>",
-                    "reference": "<p>https://www.zaproxy.org/docs/desktop/addons/authentication-helper/session-mgmt-id/</p>",
-                    "method": "GET",
-                    "param": "PHPSESSID",
-                    "evidence": "PHPSESSID",
-                    "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
+              "type": "http",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Mac OS X 13_2) AppleWebKit/537.36 (KHTML, like Gecko) Edge/106.0 Safari/537.36\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "template_id": "http-missing-security-headers",
+              "info": {
+                "name": "HTTP Missing Security Headers",
+                "author": [
+                  "socketz",
+                  "geeknik",
+                  "g4l1t0",
+                  "convisoappsec",
+                  "kurohost",
+                  "dawid-czarnecki",
+                  "forgedhallpass",
+                  "jub0bs",
+                  "userdehghani"
+                ],
+                "tags": [
+                  "misconfig",
+                  "headers",
+                  "generic",
+                  "vuln"
+                ],
+                "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
+                "severity": "info",
+                "metadata": {
+                  "max-request": 1
+                }
               },
-              {
-                "name": "wapiti",
-                "findings": [
-                  {
-                    "name": "HTTP Methods",
-                    "method": "GET",
-                    "info": "Possible interesting methods (using heuristics) on http://192.168.0.156/DVWA/vulnerabilities/xss_r/: ",
-                    "level": 0,
-                    "module": "methods",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                    "path": "/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "cwe_id": "CWE-693",
-            "scanners": [
-              {
-                "name": "zap",
-                "findings": [
-                  {
-                    "alert": "Content Security Policy (CSP) Header Not Set",
-                    "name": "Content Security Policy (CSP) Header Not Set",
-                    "riskcode": "2",
-                    "confidence": "3",
-                    "desc": "<p>Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross Site Scripting (XSS) and data injection attacks. These attacks are used for everything from data theft to site defacement or distribution of malware. CSP provides a set of standard HTTP headers that allow website owners to declare approved sources of content that browsers should be allowed to load on that page — covered types are JavaScript, CSS, HTML frames, fonts, images and embeddable objects such as Java applets, ActiveX, audio and video files.</p>",
-                    "solution": "<p>Ensure that your web server, application server, load balancer, etc. is configured to set the Content-Security-Policy header.</p>",
-                    "reference": "<p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP</p><p>https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html</p><p>https://www.w3.org/TR/CSP/</p><p>https://w3c.github.io/webappsec-csp/</p><p>https://web.dev/articles/csp</p><p>https://caniuse.com/#feat=contentsecuritypolicy</p><p>https://content-security-policy.com/</p>",
-                    "method": "GET",
-                    "param": "",
-                    "evidence": "",
-                    "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "alert": "X-Content-Type-Options Header Missing",
-                    "name": "X-Content-Type-Options Header Missing",
-                    "riskcode": "1",
-                    "confidence": "2",
-                    "desc": "<p>The Anti-MIME-Sniffing header X-Content-Type-Options was not set to 'nosniff'. This allows older versions of Internet Explorer and Chrome to perform MIME-sniffing on the response body, potentially causing the response body to be interpreted and displayed as a content type other than the declared content type. Current (early 2014) and legacy versions of Firefox will use the declared content type (if one is set), rather than performing MIME-sniffing.</p>",
-                    "solution": "<p>Ensure that the application/web server sets the Content-Type header appropriately, and that it sets the X-Content-Type-Options header to 'nosniff' for all web pages.</p><p>If possible, ensure that the end user uses a standards-compliant and modern web browser that does not perform MIME-sniffing at all, or that can be directed by the web application/web server to not perform MIME-sniffing.</p>",
-                    "reference": "<p>https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/compatibility/gg622941(v=vs.85)</p><p>https://owasp.org/www-community/Security_Headers</p>",
-                    "method": "GET",
-                    "param": "x-content-type-options",
-                    "evidence": "",
-                    "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
+              "type": "http",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Mac OS X 13_2) AppleWebKit/537.36 (KHTML, like Gecko) Edge/106.0 Safari/537.36\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "template_id": "http-missing-security-headers",
+              "info": {
+                "name": "HTTP Missing Security Headers",
+                "author": [
+                  "socketz",
+                  "geeknik",
+                  "g4l1t0",
+                  "convisoappsec",
+                  "kurohost",
+                  "dawid-czarnecki",
+                  "forgedhallpass",
+                  "jub0bs",
+                  "userdehghani"
+                ],
+                "tags": [
+                  "misconfig",
+                  "headers",
+                  "generic",
+                  "vuln"
+                ],
+                "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
+                "severity": "info",
+                "metadata": {
+                  "max-request": 1
+                }
               },
-              {
-                "name": "wapiti",
-                "findings": [
-                  {
-                    "name": "Content Security Policy Configuration",
-                    "method": "GET",
-                    "info": "CSP is not set for URL: http://192.168.0.156/DVWA/vulnerabilities/xss_r/",
-                    "level": 1,
-                    "module": "csp",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                    "path": "/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "cwe_id": "CWE-497",
-            "scanners": [
-              {
-                "name": "zap",
-                "findings": [
-                  {
-                    "alert": "Server Leaks Version Information via \"Server\" HTTP Response Header Field",
-                    "name": "Server Leaks Version Information via \"Server\" HTTP Response Header Field",
-                    "riskcode": "1",
-                    "confidence": "3",
-                    "desc": "<p>The web/application server is leaking version information via the \"Server\" HTTP response header. Access to such information may facilitate attackers identifying other vulnerabilities your web/application server is subject to.</p>",
-                    "solution": "<p>Ensure that your web server, application server, load balancer, etc. is configured to suppress the \"Server\" header or provide generic details.</p>",
-                    "reference": "<p>https://httpd.apache.org/docs/current/mod/core.html#servertokens</p><p>https://learn.microsoft.com/en-us/previous-versions/msp-n-p/ff648552(v=pandp.10)</p><p>https://www.troyhunt.com/shhh-dont-let-your-response-headers/</p>",
-                    "method": "GET",
-                    "param": "",
-                    "evidence": "Apache/2.4.62 (Debian)",
-                    "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "cwe_id": "CWE-16",
-            "scanners": [
-              {
-                "name": "wapiti",
-                "findings": [
-                  {
-                    "name": "MIME Type Confusion",
-                    "method": "GET",
-                    "info": "X-Content-Type-Options is not set",
-                    "level": 1,
-                    "module": "http_headers",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                    "path": "/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
+              "type": "http",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Mac OS X 13_2) AppleWebKit/537.36 (KHTML, like Gecko) Edge/106.0 Safari/537.36\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "template_id": "http-missing-security-headers",
+              "info": {
+                "name": "HTTP Missing Security Headers",
+                "author": [
+                  "socketz",
+                  "geeknik",
+                  "g4l1t0",
+                  "convisoappsec",
+                  "kurohost",
+                  "dawid-czarnecki",
+                  "forgedhallpass",
+                  "jub0bs",
+                  "userdehghani"
+                ],
+                "tags": [
+                  "misconfig",
+                  "headers",
+                  "generic",
+                  "vuln"
+                ],
+                "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
+                "severity": "info",
+                "metadata": {
+                  "max-request": 1
+                }
               },
-              {
-                "name": "nikto",
-                "findings": [
-                  {
-                    "id": "999103",
-                    "method": "GET",
-                    "msg": "The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type.",
-                    "references": "https://www.netsparker.com/web-vulnerability-scanner/vulnerabilities/missing-content-type-header/",
-                    "url": "/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "cwe_id": "CWE-319",
-            "scanners": [
-              {
-                "name": "wapiti",
-                "findings": [
-                  {
-                    "name": "Unencrypted Channels",
-                    "method": "GET",
-                    "info": "Sensitive data (cookie in the response) was sent over an unencrypted HTTP connection to http://192.168.0.156/DVWA/vulnerabilities/xss_r/. The server did not enforce HTTPS.",
-                    "level": 2,
-                    "module": "https_redirect",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                    "path": "/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "name": "Unencrypted Channels",
-                    "method": "GET",
-                    "info": "Sensitive data (GET parameters) was sent over an unencrypted HTTP connection to http://192.168.0.156/DVWA/vulnerabilities/xss_r/?name=default. The server did not enforce HTTPS.",
-                    "level": 2,
-                    "module": "https_redirect",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/?name=default HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\ncookie: security=low; PHPSESSID=99jqurbg1i17i6j0htktvgk9vh",
-                    "path": "/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "cwe_id": "CWE-614",
-            "scanners": [
-              {
-                "name": "wapiti",
-                "findings": [
-                  {
-                    "name": "Secure Flag cookie",
-                    "method": "GET",
-                    "info": "Secure flag is not set on the cookie: 'security' set at 'http://192.168.0.156/DVWA/vulnerabilities/xss_r/'",
-                    "level": 1,
-                    "module": "cookieflags",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                    "path": "/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "name": "Secure Flag cookie",
-                    "method": "GET",
-                    "info": "Secure flag is not set on the cookie: 'PHPSESSID' set at 'http://192.168.0.156/DVWA/vulnerabilities/xss_r/'",
-                    "level": 1,
-                    "module": "cookieflags",
-                    "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                    "path": "/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
+              "type": "http",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Mac OS X 13_2) AppleWebKit/537.36 (KHTML, like Gecko) Edge/106.0 Safari/537.36\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "template_id": "http-missing-security-headers",
+              "info": {
+                "name": "HTTP Missing Security Headers",
+                "author": [
+                  "socketz",
+                  "geeknik",
+                  "g4l1t0",
+                  "convisoappsec",
+                  "kurohost",
+                  "dawid-czarnecki",
+                  "forgedhallpass",
+                  "jub0bs",
+                  "userdehghani"
+                ],
+                "tags": [
+                  "misconfig",
+                  "headers",
+                  "generic",
+                  "vuln"
+                ],
+                "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
+                "severity": "info",
+                "metadata": {
+                  "max-request": 1
+                }
               },
-              {
-                "name": "nuclei",
-                "findings": [
-                  {
-                    "template_id": "cookies-without-secure",
-                    "info": {
-                      "name": "Cookies without Secure attribute - Detect",
-                      "author": [
-                        "vthiery",
-                        "rj coleman"
-                      ],
-                      "tags": [
-                        "misconfig",
-                        "http",
-                        "cookie",
-                        "generic",
-                        "vuln"
-                      ],
-                      "description": "Checks whether cookies in the HTTP response contain the Secure attribute. If the Secure flag is set, it means that the cookie can only be transmitted over HTTPS\n",
-                      "impact": "Lack of Secure flag on cookies allows the cookie to be sent over unsecure HTTP, making it vulnerable to man-in-the-middle (MITM) attacks.\n",
-                      "reference": [
-                        "https://owasp.org/www-community/controls/SecureCookieAttribute"
-                      ],
-                      "severity": "info",
-                      "metadata": {
-                        "max-request": 1,
-                        "verified": true
-                      },
-                      "classification": {
-                        "cve-id": null,
-                        "cwe-id": null,
-                        "cvss-metrics": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N"
-                      },
-                      "remediation": "Ensure that all cookies are set with the Secure attribute to prevent MITM attacks.\n"
-                    },
-                    "type": "javascript",
-                    "request": "content = template.http_all_headers\nconst setCookieLines = content\n    .split(/\\r\\n/)\n    .filter(line => line.trim().toLowerCase().startsWith('set-cookie:'));\nconst nonSecureCookies = setCookieLines.filter(line => !line.toLowerCase().includes('secure'));\nconst cookieNames = nonSecureCookies.map(line => {\n    const match = line.match(/set-cookie:\\s*([^=]+)=/i);\n    return match ? match[1] : null;\n}).filter(Boolean);\ncookieNames",
-                    "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "cwe_id": "CWE-200",
-            "scanners": [
-              {
-                "name": "nikto",
-                "findings": [
-                  {
-                    "id": "95",
-                    "method": "GET",
-                    "msg": "Cookie security created without the httponly flag.",
-                    "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies",
-                    "url": "/DVWA/vulnerabilities/xss_r/"
-                  },
-                  {
-                    "id": "95",
-                    "method": "GET",
-                    "msg": "Cookie PHPSESSID created without the httponly flag.",
-                    "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies",
-                    "url": "/DVWA/vulnerabilities/xss_r/"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+              "type": "http",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Mac OS X 13_2) AppleWebKit/537.36 (KHTML, like Gecko) Edge/106.0 Safari/537.36\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "template_id": "http-missing-security-headers",
+              "info": {
+                "name": "HTTP Missing Security Headers",
+                "author": [
+                  "socketz",
+                  "geeknik",
+                  "g4l1t0",
+                  "convisoappsec",
+                  "kurohost",
+                  "dawid-czarnecki",
+                  "forgedhallpass",
+                  "jub0bs",
+                  "userdehghani"
+                ],
+                "tags": [
+                  "misconfig",
+                  "headers",
+                  "generic",
+                  "vuln"
+                ],
+                "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
+                "severity": "info",
+                "metadata": {
+                  "max-request": 1
+                }
+              },
+              "type": "http",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Mac OS X 13_2) AppleWebKit/537.36 (KHTML, like Gecko) Edge/106.0 Safari/537.36\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "template_id": "http-missing-security-headers",
+              "info": {
+                "name": "HTTP Missing Security Headers",
+                "author": [
+                  "socketz",
+                  "geeknik",
+                  "g4l1t0",
+                  "convisoappsec",
+                  "kurohost",
+                  "dawid-czarnecki",
+                  "forgedhallpass",
+                  "jub0bs",
+                  "userdehghani"
+                ],
+                "tags": [
+                  "misconfig",
+                  "headers",
+                  "generic",
+                  "vuln"
+                ],
+                "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
+                "severity": "info",
+                "metadata": {
+                  "max-request": 1
+                }
+              },
+              "type": "http",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Mac OS X 13_2) AppleWebKit/537.36 (KHTML, like Gecko) Edge/106.0 Safari/537.36\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "template_id": "http-missing-security-headers",
+              "info": {
+                "name": "HTTP Missing Security Headers",
+                "author": [
+                  "socketz",
+                  "geeknik",
+                  "g4l1t0",
+                  "convisoappsec",
+                  "kurohost",
+                  "dawid-czarnecki",
+                  "forgedhallpass",
+                  "jub0bs",
+                  "userdehghani"
+                ],
+                "tags": [
+                  "misconfig",
+                  "headers",
+                  "generic",
+                  "vuln"
+                ],
+                "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
+                "severity": "info",
+                "metadata": {
+                  "max-request": 1
+                }
+              },
+              "type": "http",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Mac OS X 13_2) AppleWebKit/537.36 (KHTML, like Gecko) Edge/106.0 Safari/537.36\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "template_id": "http-missing-security-headers",
+              "info": {
+                "name": "HTTP Missing Security Headers",
+                "author": [
+                  "socketz",
+                  "geeknik",
+                  "g4l1t0",
+                  "convisoappsec",
+                  "kurohost",
+                  "dawid-czarnecki",
+                  "forgedhallpass",
+                  "jub0bs",
+                  "userdehghani"
+                ],
+                "tags": [
+                  "misconfig",
+                  "headers",
+                  "generic",
+                  "vuln"
+                ],
+                "description": "This template searches for missing HTTP security headers. The impact of these missing headers can vary.\n",
+                "severity": "info",
+                "metadata": {
+                  "max-request": 1
+                }
+              },
+              "type": "http",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Mac OS X 13_2) AppleWebKit/537.36 (KHTML, like Gecko) Edge/106.0 Safari/537.36\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "template_id": "top-xss-params",
+              "info": {
+                "name": "Top 38 Parameters - Cross-Site Scripting",
+                "author": [
+                  "foulenzer",
+                  "geeknik"
+                ],
+                "tags": [
+                  "xss",
+                  "generic",
+                  "vuln"
+                ],
+                "description": "Cross-site scripting was discovered via a search for reflected parameter values in the server response via GET-requests.",
+                "severity": "high",
+                "metadata": {
+                  "max-request": 3,
+                  "parameters": "q,s,search,id,action,keyword,query,page,keywords,url,view,cat,name,key,p,month,page_id,password,terms,token,type,unsubscribe_token,api,api_key,begindate,callback,categoryid,csrf_token,email,emailto,enddate,immagine,item,jsonp,l,lang,list_type,year"
+                },
+                "classification": {
+                  "cve-id": null,
+                  "cwe-id": [
+                    "cwe-79"
+                  ],
+                  "cvss-metrics": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:L/A:N",
+                  "cvss-score": 7.2
+                }
+              },
+              "type": "http",
+              "request": "GET /DVWA/vulnerabilities/xss_r/?q=%27%3E%22%3Csvg%2Fonload=confirm%28%27q%27%29%3E&s=%27%3E%22%3Csvg%2Fonload=confirm%28%27s%27%29%3E&search=%27%3E%22%3Csvg%2Fonload=confirm%28%27search%27%29%3E&id=%27%3E%22%3Csvg%2Fonload=confirm%28%27id%27%29%3E&action=%27%3E%22%3Csvg%2Fonload=confirm%28%27action%27%29%3E&keyword=%27%3E%22%3Csvg%2Fonload=confirm%28%27keyword%27%29%3E&query=%27%3E%22%3Csvg%2Fonload=confirm%28%27query%27%29%3E&page=%27%3E%22%3Csvg%2Fonload=confirm%28%27page%27%29%3E&keywords=%27%3E%22%3Csvg%2Fonload=confirm%28%27keywords%27%29%3E&url=%27%3E%22%3Csvg%2Fonload=confirm%28%27url%27%29%3E&view=%27%3E%22%3Csvg%2Fonload=confirm%28%27view%27%29%3E&cat=%27%3E%22%3Csvg%2Fonload=confirm%28%27cat%27%29%3E&name=%27%3E%22%3Csvg%2Fonload=confirm%28%27name%27%29%3E&key=%27%3E%22%3Csvg%2Fonload=confirm%28%27key%27%29%3E&p=%27%3E%22%3Csvg%2Fonload=confirm%28%27p%27%29%3E HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Ubuntu; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "template_id": "apache-detect",
+              "info": {
+                "name": "Apache Detection",
+                "author": [
+                  "philippedelteil"
+                ],
+                "tags": [
+                  "tech",
+                  "apache",
+                  "discovery"
+                ],
+                "description": "Some Apache servers have the version on the response header. The OpenSSL version can be also obtained",
+                "severity": "info",
+                "metadata": {
+                  "max-request": 1
+                }
+              },
+              "type": "http",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1 Safari/605.1.15\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "template_id": "php-detect",
+              "info": {
+                "name": "PHP Detect",
+                "author": [
+                  "y0no"
+                ],
+                "tags": [
+                  "tech",
+                  "php",
+                  "discovery"
+                ],
+                "severity": "info",
+                "metadata": {
+                  "max-request": 1,
+                  "product": "php",
+                  "shodan-query": "X-Powered-By: PHP",
+                  "vendor": "php",
+                  "verified": true
+                },
+                "classification": {
+                  "cve-id": null,
+                  "cwe-id": null,
+                  "cpe": "cpe:2.3:a:php:php:*:*:*:*:*:*:*:*"
+                }
+              },
+              "type": "http",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\r\nHost: 192.168.0.156\r\nUser-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1 Safari/605.1.15\r\nConnection: close\r\nAccept: */*\r\nAccept-Language: en\r\nAccept-Encoding: gzip\r\n\r\n",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            }
+          ],
+          "wapiti": [
+            {
+              "name": "HTTP Methods",
+              "method": "GET",
+              "info": "Possible interesting methods (using heuristics) on http://192.168.0.156/DVWA/vulnerabilities/xss_r/: ",
+              "level": 0,
+              "module": "methods",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+              "path": "/DVWA/vulnerabilities/xss_r/"
+            }
+          ],
+          "zap": [
+            {
+              "alert": "Modern Web Application",
+              "name": "Modern Web Application",
+              "riskcode": "0",
+              "confidence": "2",
+              "desc": "<p>The application appears to be a modern web application. If you need to explore it automatically then the Ajax Spider may well be more effective than the standard one.</p>",
+              "solution": "<p>This is an informational alert and so no changes are required.</p>",
+              "reference": "",
+              "method": "GET",
+              "param": "",
+              "evidence": "<a href=\"#\" onclick=\"javascript:toggleTheme();\" class=\"theme-icon\" title=\"Toggle theme between light and dark.\">\n                    <img src=\"../../dvwa/images/theme-light-dark.png\" alt=\"Damn Vulnerable Web Application\" />\n                </a>",
+              "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "alert": "Session Management Response Identified",
+              "name": "Session Management Response Identified",
+              "riskcode": "0",
+              "confidence": "2",
+              "desc": "<p>The given response has been identified as containing a session management token. The 'Other Info' field contains a set of header tokens that can be used in the Header Based Session Management Method. If the request is in a context which has a Session Management Method set to \"Auto-Detect\" then this rule will change the session management to use the tokens identified.</p>",
+              "solution": "<p>This is an informational alert rather than a vulnerability and so there is nothing to fix.</p>",
+              "reference": "<p>https://www.zaproxy.org/docs/desktop/addons/authentication-helper/session-mgmt-id/</p>",
+              "method": "GET",
+              "param": "PHPSESSID",
+              "evidence": "PHPSESSID",
+              "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            }
+          ]
+        },
+        "CWE-1004": {
+          "nuclei": [
+            {
+              "template_id": "cookies-without-httponly",
+              "info": {
+                "name": "Cookies without HttpOnly attribute - Detect",
+                "author": [
+                  "rj coleman",
+                  "mr.bobo hp"
+                ],
+                "tags": [
+                  "misconfig",
+                  "http",
+                  "cookie",
+                  "generic",
+                  "vuln"
+                ],
+                "description": "Checks whether cookies in the HTTP response contain the HttpOnly attribute. If the HttpOnly flag is set, it means that the cookie is HTTP-only\n",
+                "impact": "Lack of HttpOnly flag on cookies increases the risk of client-side attacks, compromising user session security and data privacy.\n",
+                "reference": [
+                  "https://owasp.org/www-community/HttpOnly"
+                ],
+                "severity": "info",
+                "metadata": {
+                  "max-request": 1,
+                  "verified": true
+                },
+                "classification": {
+                  "cve-id": null,
+                  "cwe-id": null,
+                  "cvss-metrics": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N"
+                },
+                "remediation": "Ensure that all cookies are set with the HttpOnly attribute to prevent client-side access.\n"
+              },
+              "type": "javascript",
+              "request": "content = template.http_all_headers\nconst setCookieLines = content\n    .split(/\\r\\n/)\n    .filter(line => line.trim().toLowerCase().startsWith('set-cookie:'));\n\nconst nonHttpOnlyCookies = setCookieLines.filter(line => !line.toLowerCase().includes('httponly'));\n\nconst cookieNames = nonHttpOnlyCookies.map(line => {\n    const match = line.match(/set-cookie:\\s*([^=]+)=/i);\n    return match ? match[1] : null;\n}).filter(Boolean);\ncookieNames",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            }
+          ],
+          "wapiti": [
+            {
+              "name": "HttpOnly Flag cookie",
+              "method": "GET",
+              "info": "HttpOnly flag is not set on the cookie 'security' set at 'http://192.168.0.156/DVWA/vulnerabilities/xss_r/'",
+              "level": 1,
+              "module": "cookieflags",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+              "path": "/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "name": "HttpOnly Flag cookie",
+              "method": "GET",
+              "info": "HttpOnly flag is not set on the cookie 'PHPSESSID' set at 'http://192.168.0.156/DVWA/vulnerabilities/xss_r/'",
+              "level": 1,
+              "module": "cookieflags",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+              "path": "/DVWA/vulnerabilities/xss_r/"
+            }
+          ],
+          "zap": [
+            {
+              "alert": "Cookie No HttpOnly Flag",
+              "name": "Cookie No HttpOnly Flag",
+              "riskcode": "1",
+              "confidence": "2",
+              "desc": "<p>A cookie has been set without the HttpOnly flag, which means that the cookie can be accessed by JavaScript. If a malicious script can be run on this page then the cookie will be accessible and can be transmitted to another site. If this is a session cookie then session hijacking may be possible.</p>",
+              "solution": "<p>Ensure that the HttpOnly flag is set for all cookies.</p>",
+              "reference": "<p>https://owasp.org/www-community/HttpOnly</p>",
+              "method": "GET",
+              "param": "PHPSESSID",
+              "evidence": "Set-Cookie: PHPSESSID",
+              "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            }
+          ]
+        },
+        "CWE-1021": {
+          "wapiti": [
+            {
+              "name": "Clickjacking Protection",
+              "method": "GET",
+              "info": "X-Frame-Options is not set",
+              "level": 1,
+              "module": "http_headers",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+              "path": "/DVWA/vulnerabilities/xss_r/"
+            }
+          ],
+          "zap": [
+            {
+              "alert": "Missing Anti-clickjacking Header",
+              "name": "Missing Anti-clickjacking Header",
+              "riskcode": "2",
+              "confidence": "2",
+              "desc": "<p>The response does not protect against 'ClickJacking' attacks. It should include either Content-Security-Policy with 'frame-ancestors' directive or X-Frame-Options.</p>",
+              "solution": "<p>Modern Web browsers support the Content-Security-Policy and X-Frame-Options HTTP headers. Ensure one of them is set on all web pages returned by your site/app.</p><p>If you expect the page to be framed only by pages on your server (e.g. it's part of a FRAMESET) then you'll want to use SAMEORIGIN, otherwise if you never expect the page to be framed, you should use DENY. Alternatively consider implementing Content Security Policy's \"frame-ancestors\" directive.</p>",
+              "reference": "<p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options</p>",
+              "method": "GET",
+              "param": "x-frame-options",
+              "evidence": "",
+              "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            }
+          ]
+        },
+        "CWE-1104": {
+          "zap": [
+            {
+              "alert": "ZAP is Out of Date",
+              "name": "ZAP is Out of Date",
+              "riskcode": "1",
+              "confidence": "3",
+              "desc": "<p>The version of ZAP you are using to test your app is out of date and is no longer being updated.</p><p>The risk level is set based on how out of date your ZAP version is.</p>",
+              "solution": "<p>Download the latest version of ZAP from https://www.zaproxy.org/download/ and install it.</p>",
+              "reference": "<p>https://www.zaproxy.org/download/</p>",
+              "method": "GET",
+              "param": "",
+              "evidence": "",
+              "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            }
+          ]
+        },
+        "CWE-1275": {
+          "zap": [
+            {
+              "alert": "Cookie without SameSite Attribute",
+              "name": "Cookie without SameSite Attribute",
+              "riskcode": "1",
+              "confidence": "2",
+              "desc": "<p>A cookie has been set without the SameSite attribute, which means that the cookie can be sent as a result of a 'cross-site' request. The SameSite attribute is an effective counter measure to cross-site request forgery, cross-site script inclusion, and timing attacks.</p>",
+              "solution": "<p>Ensure that the SameSite attribute is set to either 'lax' or ideally 'strict' for all cookies.</p>",
+              "reference": "<p>https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-cookie-same-site</p>",
+              "method": "GET",
+              "param": "PHPSESSID",
+              "evidence": "Set-Cookie: PHPSESSID",
+              "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            }
+          ]
+        },
+        "CWE-16": {
+          "nikto": [
+            {
+              "id": "999103",
+              "method": "GET",
+              "msg": "The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type.",
+              "references": "https://www.netsparker.com/web-vulnerability-scanner/vulnerabilities/missing-content-type-header/",
+              "url": "/DVWA/vulnerabilities/xss_r/"
+            }
+          ],
+          "wapiti": [
+            {
+              "name": "MIME Type Confusion",
+              "method": "GET",
+              "info": "X-Content-Type-Options is not set",
+              "level": 1,
+              "module": "http_headers",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+              "path": "/DVWA/vulnerabilities/xss_r/"
+            }
+          ]
+        },
+        "CWE-200": {
+          "nikto": [
+            {
+              "id": "95",
+              "method": "GET",
+              "msg": "Cookie security created without the httponly flag.",
+              "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies",
+              "url": "/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "id": "95",
+              "method": "GET",
+              "msg": "Cookie PHPSESSID created without the httponly flag.",
+              "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies",
+              "url": "/DVWA/vulnerabilities/xss_r/"
+            }
+          ]
+        },
+        "CWE-319": {
+          "wapiti": [
+            {
+              "name": "Unencrypted Channels",
+              "method": "GET",
+              "info": "Sensitive data (cookie in the response) was sent over an unencrypted HTTP connection to http://192.168.0.156/DVWA/vulnerabilities/xss_r/. The server did not enforce HTTPS.",
+              "level": 2,
+              "module": "https_redirect",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+              "path": "/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "name": "Unencrypted Channels",
+              "method": "GET",
+              "info": "Sensitive data (GET parameters) was sent over an unencrypted HTTP connection to http://192.168.0.156/DVWA/vulnerabilities/xss_r/?name=default. The server did not enforce HTTPS.",
+              "level": 2,
+              "module": "https_redirect",
+              "request": "GET /DVWA/vulnerabilities/xss_r/?name=default HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\ncookie: security=low; PHPSESSID=1oqs2ppmkdfhlgqqcc6ckj3jtt",
+              "path": "/DVWA/vulnerabilities/xss_r/"
+            }
+          ]
+        },
+        "CWE-497": {
+          "zap": [
+            {
+              "alert": "Server Leaks Version Information via \"Server\" HTTP Response Header Field",
+              "name": "Server Leaks Version Information via \"Server\" HTTP Response Header Field",
+              "riskcode": "1",
+              "confidence": "3",
+              "desc": "<p>The web/application server is leaking version information via the \"Server\" HTTP response header. Access to such information may facilitate attackers identifying other vulnerabilities your web/application server is subject to.</p>",
+              "solution": "<p>Ensure that your web server, application server, load balancer, etc. is configured to suppress the \"Server\" header or provide generic details.</p>",
+              "reference": "<p>https://httpd.apache.org/docs/current/mod/core.html#servertokens</p><p>https://learn.microsoft.com/en-us/previous-versions/msp-n-p/ff648552(v=pandp.10)</p><p>https://www.troyhunt.com/shhh-dont-let-your-response-headers/</p>",
+              "method": "GET",
+              "param": "",
+              "evidence": "Apache/2.4.62 (Debian)",
+              "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            }
+          ]
+        },
+        "CWE-614": {
+          "nuclei": [
+            {
+              "template_id": "cookies-without-secure",
+              "info": {
+                "name": "Cookies without Secure attribute - Detect",
+                "author": [
+                  "vthiery",
+                  "rj coleman"
+                ],
+                "tags": [
+                  "misconfig",
+                  "http",
+                  "cookie",
+                  "generic",
+                  "vuln"
+                ],
+                "description": "Checks whether cookies in the HTTP response contain the Secure attribute. If the Secure flag is set, it means that the cookie can only be transmitted over HTTPS\n",
+                "impact": "Lack of Secure flag on cookies allows the cookie to be sent over unsecure HTTP, making it vulnerable to man-in-the-middle (MITM) attacks.\n",
+                "reference": [
+                  "https://owasp.org/www-community/controls/SecureCookieAttribute"
+                ],
+                "severity": "info",
+                "metadata": {
+                  "max-request": 1,
+                  "verified": true
+                },
+                "classification": {
+                  "cve-id": null,
+                  "cwe-id": null,
+                  "cvss-metrics": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N"
+                },
+                "remediation": "Ensure that all cookies are set with the Secure attribute to prevent MITM attacks.\n"
+              },
+              "type": "javascript",
+              "request": "content = template.http_all_headers\nconst setCookieLines = content\n    .split(/\\r\\n/)\n    .filter(line => line.trim().toLowerCase().startsWith('set-cookie:'));\nconst nonSecureCookies = setCookieLines.filter(line => !line.toLowerCase().includes('secure'));\nconst cookieNames = nonSecureCookies.map(line => {\n    const match = line.match(/set-cookie:\\s*([^=]+)=/i);\n    return match ? match[1] : null;\n}).filter(Boolean);\ncookieNames",
+              "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            }
+          ],
+          "wapiti": [
+            {
+              "name": "Secure Flag cookie",
+              "method": "GET",
+              "info": "Secure flag is not set on the cookie: 'security' set at 'http://192.168.0.156/DVWA/vulnerabilities/xss_r/'",
+              "level": 1,
+              "module": "cookieflags",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+              "path": "/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "name": "Secure Flag cookie",
+              "method": "GET",
+              "info": "Secure flag is not set on the cookie: 'PHPSESSID' set at 'http://192.168.0.156/DVWA/vulnerabilities/xss_r/'",
+              "level": 1,
+              "module": "cookieflags",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+              "path": "/DVWA/vulnerabilities/xss_r/"
+            }
+          ]
+        },
+        "CWE-693": {
+          "wapiti": [
+            {
+              "name": "Content Security Policy Configuration",
+              "method": "GET",
+              "info": "CSP is not set for URL: http://192.168.0.156/DVWA/vulnerabilities/xss_r/",
+              "level": 1,
+              "module": "csp",
+              "request": "GET /DVWA/vulnerabilities/xss_r/ HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+              "path": "/DVWA/vulnerabilities/xss_r/"
+            }
+          ],
+          "zap": [
+            {
+              "alert": "Content Security Policy (CSP) Header Not Set",
+              "name": "Content Security Policy (CSP) Header Not Set",
+              "riskcode": "2",
+              "confidence": "3",
+              "desc": "<p>Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross Site Scripting (XSS) and data injection attacks. These attacks are used for everything from data theft to site defacement or distribution of malware. CSP provides a set of standard HTTP headers that allow website owners to declare approved sources of content that browsers should be allowed to load on that page — covered types are JavaScript, CSS, HTML frames, fonts, images and embeddable objects such as Java applets, ActiveX, audio and video files.</p>",
+              "solution": "<p>Ensure that your web server, application server, load balancer, etc. is configured to set the Content-Security-Policy header.</p>",
+              "reference": "<p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP</p><p>https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html</p><p>https://www.w3.org/TR/CSP/</p><p>https://w3c.github.io/webappsec-csp/</p><p>https://web.dev/articles/csp</p><p>https://caniuse.com/#feat=contentsecuritypolicy</p><p>https://content-security-policy.com/</p>",
+              "method": "GET",
+              "param": "",
+              "evidence": "",
+              "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            },
+            {
+              "alert": "X-Content-Type-Options Header Missing",
+              "name": "X-Content-Type-Options Header Missing",
+              "riskcode": "1",
+              "confidence": "2",
+              "desc": "<p>The Anti-MIME-Sniffing header X-Content-Type-Options was not set to 'nosniff'. This allows older versions of Internet Explorer and Chrome to perform MIME-sniffing on the response body, potentially causing the response body to be interpreted and displayed as a content type other than the declared content type. Current (early 2014) and legacy versions of Firefox will use the declared content type (if one is set), rather than performing MIME-sniffing.</p>",
+              "solution": "<p>Ensure that the application/web server sets the Content-Type header appropriately, and that it sets the X-Content-Type-Options header to 'nosniff' for all web pages.</p><p>If possible, ensure that the end user uses a standards-compliant and modern web browser that does not perform MIME-sniffing at all, or that can be directed by the web application/web server to not perform MIME-sniffing.</p>",
+              "reference": "<p>https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/compatibility/gg622941(v=vs.85)</p><p>https://owasp.org/www-community/Security_Headers</p>",
+              "method": "GET",
+              "param": "x-content-type-options",
+              "evidence": "",
+              "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/"
+            }
+          ]
+        },
+        "CWE-79": {
+          "wapiti": [
+            {
+              "name": "Reflected Cross Site Scripting",
+              "method": "GET",
+              "info": "Reflected Cross Site Scripting vulnerability found via injection in the parameter name",
+              "level": 2,
+              "module": "xss",
+              "request": "GET /DVWA/vulnerabilities/xss_r/?name=%3CScRiPt%3Ealert%28%27w76bavs8wl%27%29%3C%2FsCrIpT%3E HTTP/1.1\nhost: 192.168.0.156\nconnection: keep-alive\nuser-agent: Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0\naccept-language: en-US\naccept-encoding: gzip, deflate, br\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\ncookie: security=low; PHPSESSID=1oqs2ppmkdfhlgqqcc6ckj3jtt",
+              "path": "/DVWA/vulnerabilities/xss_r/"
+            }
+          ],
+          "zap": [
+            {
+              "alert": "Cross Site Scripting (Reflected)",
+              "name": "Cross Site Scripting (Reflected)",
+              "riskcode": "3",
+              "confidence": "2",
+              "desc": "<p>Cross-site Scripting (XSS) is an attack technique that involves echoing attacker-supplied code into a user's browser instance. A browser instance can be a standard web browser client, or a browser object embedded in a software product such as the browser within WinAmp, an RSS reader, or an email client. The code itself is usually written in HTML/JavaScript, but may also extend to VBScript, ActiveX, Java, Flash, or any other browser-supported technology.</p><p>When an attacker gets a user's browser to execute his/her code, the code will run within the security context (or zone) of the hosting web site. With this level of privilege, the code has the ability to read, modify and transmit any sensitive data accessible by the browser. A Cross-site Scripted user could have his/her account hijacked (cookie theft), their browser redirected to another location, or possibly shown fraudulent content delivered by the web site they are visiting. Cross-site Scripting attacks essentially compromise the trust relationship between a user and the web site. Applications utilizing browser object instances which load content from the file system may execute code under the local machine zone allowing for system compromise.</p><p></p><p>There are three types of Cross-site Scripting attacks: non-persistent, persistent and DOM-based.</p><p>Non-persistent attacks and DOM-based attacks require a user to either visit a specially crafted link laced with malicious code, or visit a malicious web page containing a web form, which when posted to the vulnerable site, will mount the attack. Using a malicious form will oftentimes take place when the vulnerable resource only accepts HTTP POST requests. In such a case, the form can be submitted automatically, without the victim's knowledge (e.g. by using JavaScript). Upon clicking on the malicious link or submitting the malicious form, the XSS payload will get echoed back and will get interpreted by the user's browser and execute. Another technique to send almost arbitrary requests (GET and POST) is by using an embedded client, such as Adobe Flash.</p><p>Persistent attacks occur when the malicious code is submitted to a web site where it's stored for a period of time. Examples of an attacker's favorite targets often include message board posts, web mail messages, and web chat software. The unsuspecting user is not required to interact with any additional site/link (e.g. an attacker site or a malicious link sent via email), just simply view the web page containing the code.</p>",
+              "solution": "<p>Phase: Architecture and Design</p><p>Use a vetted library or framework that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid.</p><p>Examples of libraries and frameworks that make it easier to generate properly encoded output include Microsoft's Anti-XSS library, the OWASP ESAPI Encoding module, and Apache Wicket.</p><p></p><p>Phases: Implementation; Architecture and Design</p><p>Understand the context in which your data will be used and the encoding that will be expected. This is especially important when transmitting data between different components, or when generating outputs that can contain multiple encodings at the same time, such as web pages or multi-part mail messages. Study all expected communication protocols and data representations to determine the required encoding strategies.</p><p>For any data that will be output to another web page, especially any data that was received from external inputs, use the appropriate encoding on all non-alphanumeric characters.</p><p>Consult the XSS Prevention Cheat Sheet for more details on the types of encoding and escaping that are needed.</p><p></p><p>Phase: Architecture and Design</p><p>For any security checks that are performed on the client side, ensure that these checks are duplicated on the server side, in order to avoid CWE-602. Attackers can bypass the client-side checks by modifying values after the checks have been performed, or by changing the client to remove the client-side checks entirely. Then, these modified values would be submitted to the server.</p><p></p><p>If available, use structured mechanisms that automatically enforce the separation between data and code. These mechanisms may be able to provide the relevant quoting, encoding, and validation automatically, instead of relying on the developer to provide this capability at every point where output is generated.</p><p></p><p>Phase: Implementation</p><p>For every web page that is generated, use and specify a character encoding such as ISO-8859-1 or UTF-8. When an encoding is not specified, the web browser may choose a different encoding by guessing which encoding is actually being used by the web page. This can cause the web browser to treat certain sequences as special, opening up the client to subtle XSS attacks. See CWE-116 for more mitigations related to encoding/escaping.</p><p></p><p>To help mitigate XSS attacks against the user's session cookie, set the session cookie to be HttpOnly. In browsers that support the HttpOnly feature (such as more recent versions of Internet Explorer and Firefox), this attribute can prevent the user's session cookie from being accessible to malicious client-side scripts that use document.cookie. This is not a complete solution, since HttpOnly is not supported by all browsers. More importantly, XMLHTTPRequest and other powerful browser technologies provide read access to HTTP headers, including the Set-Cookie header in which the HttpOnly flag is set.</p><p></p><p>Assume all input is malicious. Use an \"accept known good\" input validation strategy, i.e., use an allow list of acceptable inputs that strictly conform to specifications. Reject any input that does not strictly conform to specifications, or transform it into something that does. Do not rely exclusively on looking for malicious or malformed inputs (i.e., do not rely on a deny list). However, deny lists can be useful for detecting potential attacks or determining which inputs are so malformed that they should be rejected outright.</p><p></p><p>When performing input validation, consider all potentially relevant properties, including length, type of input, the full range of acceptable values, missing or extra inputs, syntax, consistency across related fields, and conformance to business rules. As an example of business rule logic, \"boat\" may be syntactically valid because it only contains alphanumeric characters, but it is not valid if you are expecting colors such as \"red\" or \"blue.\"</p><p></p><p>Ensure that you perform input validation at well-defined interfaces within the application. This will help protect the application even if a component is reused or moved elsewhere.</p><p>\t</p>",
+              "reference": "<p>https://owasp.org/www-community/attacks/xss/</p><p>https://cwe.mitre.org/data/definitions/79.html</p>",
+              "method": "GET",
+              "param": "name",
+              "evidence": "</pre><scrIpt>alert(1);</scRipt><pre>",
+              "uri": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/?name=%3C%2Fpre%3E%3CscrIpt%3Ealert%281%29%3B%3C%2FscRipt%3E%3Cpre%3E"
+            }
+          ]
+        }
       },
-      {
-        "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/help",
-        "cwes": [
-          {
-            "cwe_id": "CWE-548",
-            "scanners": [
-              {
-                "name": "nikto",
-                "findings": [
-                  {
-                    "id": "750500",
-                    "method": "GET",
-                    "msg": "Directory indexing found.",
-                    "references": "",
-                    "url": "/DVWA/vulnerabilities/xss_r/help/"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "cwe_id": "0",
-            "scanners": [
-              {
-                "name": "nikto",
-                "findings": [
-                  {
-                    "id": "000045",
-                    "method": "GET",
-                    "msg": "Help directory should not be accessible.",
-                    "references": "",
-                    "url": "/DVWA/vulnerabilities/xss_r/help/"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+      "http://192.168.0.156/DVWA/vulnerabilities/xss_r/help": {
+        "0": {
+          "nikto": [
+            {
+              "id": "000045",
+              "method": "GET",
+              "msg": "Help directory should not be accessible.",
+              "references": "",
+              "url": "/DVWA/vulnerabilities/xss_r/help/"
+            }
+          ]
+        },
+        "CWE-548": {
+          "nikto": [
+            {
+              "id": "750500",
+              "method": "GET",
+              "msg": "Directory indexing found.",
+              "references": "",
+              "url": "/DVWA/vulnerabilities/xss_r/help/"
+            }
+          ]
+        }
       },
-      {
-        "url": "http://192.168.0.156/DVWA/vulnerabilities/xss_r/source",
-        "cwes": [
-          {
-            "cwe_id": "CWE-548",
-            "scanners": [
-              {
-                "name": "nikto",
-                "findings": [
-                  {
-                    "id": "750500",
-                    "method": "GET",
-                    "msg": "Directory indexing found.",
-                    "references": "",
-                    "url": "/DVWA/vulnerabilities/xss_r/source/"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+      "http://192.168.0.156/DVWA/vulnerabilities/xss_r/source": {
+        "CWE-548": {
+          "nikto": [
+            {
+              "id": "750500",
+              "method": "GET",
+              "msg": "Directory indexing found.",
+              "references": "",
+              "url": "/DVWA/vulnerabilities/xss_r/source/"
+            }
+          ]
+        }
       }
-    ]
+    }
   }
 }

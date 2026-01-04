@@ -1,6 +1,6 @@
-- wapiti - modules, only one page; target up to first /, then path in each vuln
+- wapiti - page scope; target up to first /, then path in each vuln
 - nikto - everything, can't specify pages; scheme from file -> host field -> if port not 443, 80 then port -> url field in vulns
-- nuclei - disable interactsh server for OAST testing, exclude OAST based templates; url field
-- zap - weird spider; uri in instances
+- nuclei - disable interactsh server for OAST testing, exclude OAST based templates, can't really specify pages; url field
+- zap - weird spider, depth 1; uri in instances
 
 TODO
