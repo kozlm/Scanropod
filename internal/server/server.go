@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -16,16 +15,47 @@ import (
 	"github.com/kozlm/scanropods/internal/store"
 )
 
+type SecurityConfig struct {
+	APIKeyEnabled bool
+	APIKey        string
+}
+
+var securityConfig SecurityConfig
 var baseDir string
+
+func apiKeyMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		if !securityConfig.APIKeyEnabled {
+			ctx.Next()
+			return
+		}
+
+		key := ctx.GetHeader("X-API-Key")
+		if key == "" || key != securityConfig.APIKey {
+			ctx.AbortWithStatusJSON(
+				http.StatusUnauthorized,
+				gin.H{"error": "invalid or missing API key"},
+			)
+			return
+		}
+
+		ctx.Next()
+	}
+}
 
 func Run() error {
 	store.Init()
 	log.Println("[server] store initialized")
 
+	if securityConfig.APIKeyEnabled {
+		log.Println("[security] API key authentication enabled")
+	} else {
+		log.Println("[security] API key authentication disabled")
+	}
+
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Printf("[server] could not get working directory")
-		return errors.New("could not get working directory")
+		log.Fatal("[server] could not get working directory")
 	}
 	log.Printf("[server] base dir: %s", dir)
 	baseDir = dir
@@ -33,6 +63,7 @@ func Run() error {
 	scanner.Init(baseDir)
 
 	r := gin.Default()
+	r.Use(apiKeyMiddleware())
 
 	r.POST("/scan/start", startHandler)
 	r.GET("/scan/status/:id", statusHandler)
