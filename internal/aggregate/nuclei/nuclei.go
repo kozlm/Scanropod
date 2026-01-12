@@ -36,15 +36,22 @@ type nucleiFindingPayload struct {
 	URL        string          `json:"url"`
 }
 
+var (
+	loadNucleiMap = cwe.LoadNucleiMap
+	readDir       = os.ReadDir
+	readFile      = os.ReadFile
+	cleanUrl      = helper.CleanUrl
+)
+
 // ParseReports reads all Nuclei JSON files for given scanID
 func ParseReports(scanID, nucleiCSVPath string) ([]model.NormalizedFinding, error) {
-	cweMap, err := cwe.LoadNucleiMap(nucleiCSVPath)
+	cweMap, err := loadNucleiMap(nucleiCSVPath)
 	if err != nil {
 		return nil, fmt.Errorf("load nuclei cwe map: %w", err)
 	}
 
 	reportsDir := filepath.Join("reports", scanID)
-	entries, err := os.ReadDir(reportsDir)
+	entries, err := readDir(reportsDir)
 	if err != nil {
 		return nil, fmt.Errorf("read reports dir: %w", err)
 	}
@@ -76,7 +83,7 @@ func isNucleiReportFile(name string) bool {
 }
 
 func parseSingleReport(path string, cweMap cwe.NucleiMap) ([]model.NormalizedFinding, error) {
-	data, err := os.ReadFile(path)
+	data, err := readFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +109,7 @@ func parseSingleReport(path string, cweMap cwe.NucleiMap) ([]model.NormalizedFin
 	var findings []model.NormalizedFinding
 
 	for _, template := range templates {
-		targetUrl, err := helper.CleanUrl(template.URL)
+		targetUrl, err := cleanUrl(template.URL)
 		if err != nil {
 			return nil, fmt.Errorf("clean nuclei targetUrl: %w", err)
 		}

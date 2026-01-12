@@ -46,15 +46,22 @@ type wapitiFindingPayload struct {
 	Path    string `json:"path"`
 }
 
+var (
+	loadWapitiMap = cwe.LoadWapitiMap
+	readDir       = os.ReadDir
+	readFile      = os.ReadFile
+	cleanUrl      = helper.CleanUrl
+)
+
 // ParseReports reads all Wapiti JSON files for given scanID
 func ParseReports(scanID, wapitiCSVPath string) ([]model.NormalizedFinding, error) {
-	cweMap, err := cwe.LoadWapitiMap(wapitiCSVPath)
+	cweMap, err := loadWapitiMap(wapitiCSVPath)
 	if err != nil {
 		return nil, fmt.Errorf("load wapiti cwe map: %w", err)
 	}
 
 	reportsDir := filepath.Join("reports", scanID)
-	entries, err := os.ReadDir(reportsDir)
+	entries, err := readDir(reportsDir)
 	if err != nil {
 		return nil, fmt.Errorf("read reports dir: %w", err)
 	}
@@ -86,7 +93,7 @@ func isWapitiReportFile(name string) bool {
 }
 
 func parseSingleReport(path string, cweMap *cwe.WapitiMap) ([]model.NormalizedFinding, error) {
-	data, err := os.ReadFile(path)
+	data, err := readFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +108,7 @@ func parseSingleReport(path string, cweMap *cwe.WapitiMap) ([]model.NormalizedFi
 	// vulnerabilities, anomalies, additionals have same structure
 	addCategory := func(name string, categoryEntries []wapitiFinding) error {
 		for _, categoryEntry := range categoryEntries {
-			targetUrl, err := helper.CleanUrl(res.Infos.Target)
+			targetUrl, err := cleanUrl(res.Infos.Target)
 			if err != nil {
 				return fmt.Errorf("clean wapiti targetUrl: %w", err)
 			}

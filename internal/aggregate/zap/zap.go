@@ -62,15 +62,22 @@ type zapFindingPayload struct {
 	URI        string `json:"uri"`
 }
 
+var (
+	loadZapMap = cwe.LoadZapMap
+	readDir    = os.ReadDir
+	readFile   = os.ReadFile
+	cleanUrl   = helper.CleanUrl
+)
+
 // ParseReports reads all ZAP JSON files for given scanID
 func ParseReports(scanID, zapCSVPath string) ([]model.NormalizedFinding, error) {
-	cweMap, err := cwe.LoadZapMap(zapCSVPath)
+	cweMap, err := loadZapMap(zapCSVPath)
 	if err != nil {
 		return nil, fmt.Errorf("load zap cwe map: %w", err)
 	}
 
 	reportsDir := filepath.Join("reports", scanID)
-	entries, err := os.ReadDir(reportsDir)
+	entries, err := readDir(reportsDir)
 	if err != nil {
 		return nil, fmt.Errorf("read reports dir: %w", err)
 	}
@@ -103,7 +110,7 @@ func isZapReportFile(name string) bool {
 }
 
 func parseSingleReport(path string, cweMap cwe.ZapMap) ([]model.NormalizedFinding, error) {
-	data, err := os.ReadFile(path)
+	data, err := readFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +130,7 @@ func parseSingleReport(path string, cweMap cwe.ZapMap) ([]model.NormalizedFindin
 				cweID = "0"
 			}
 
-			targetUrl, err := helper.CleanUrl(alert.Instances[0].URI)
+			targetUrl, err := cleanUrl(alert.Instances[0].URI)
 			if err != nil {
 				return nil, fmt.Errorf("clean zap targetUrl: %w", err)
 			}

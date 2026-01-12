@@ -6,9 +6,11 @@ import (
 	"strings"
 )
 
+var mkdirAll = os.MkdirAll
+
 // EnsureDir makes sure given directory exists
 func EnsureDir(dir string) {
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if err := mkdirAll(dir, 0o755); err != nil {
 		log.Printf("[scanner] failed to create dir %s: %v", dir, err)
 	}
 }

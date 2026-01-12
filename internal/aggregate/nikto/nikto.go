@@ -36,15 +36,24 @@ type niktoFindingPayload struct {
 	URL        string `json:"url"`
 }
 
+var (
+	loadNiktoMap   = cwe.LoadNiktoMap
+	readDir        = os.ReadDir
+	readFile       = os.ReadFile
+	buildUrl       = helper.BuildUrl
+	cleanUrl       = helper.CleanUrl
+	schemeFromName = helper.SchemeFromReportFileName
+)
+
 // ParseReports reads all Nikto JSON files for given scanID
 func ParseReports(scanID, niktoCSVPath string) ([]model.NormalizedFinding, error) {
-	cweMap, err := cwe.LoadNiktoMap(niktoCSVPath)
+	cweMap, err := loadNiktoMap(niktoCSVPath)
 	if err != nil {
 		return nil, fmt.Errorf("load nikto cwe map: %w", err)
 	}
 
 	reportsDir := filepath.Join("reports", scanID)
-	entries, err := os.ReadDir(reportsDir)
+	entries, err := readDir(reportsDir)
 	if err != nil {
 		return nil, fmt.Errorf("read reports dir: %w", err)
 	}
@@ -60,7 +69,7 @@ func ParseReports(scanID, niktoCSVPath string) ([]model.NormalizedFinding, error
 			continue
 		}
 
-		scheme := helper.SchemeFromReportFileName(name) // http / https
+		scheme := schemeFromName(name) // http / https
 		path := filepath.Join(reportsDir, name)
 
 		fileFindings, err := parseSingleReport(path, scheme, cweMap)
@@ -78,7 +87,7 @@ func isNiktoReportFile(name string) bool {
 }
 
 func parseSingleReport(path, scheme string, cweMap cwe.NiktoMap) ([]model.NormalizedFinding, error) {
-	data, err := os.ReadFile(path)
+	data, err := readFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +102,7 @@ func parseSingleReport(path, scheme string, cweMap cwe.NiktoMap) ([]model.Normal
 	for _, host := range hosts {
 
 		for _, vuln := range host.Vulnerabilities {
-			targetUrl, err := helper.CleanUrl(helper.BuildUrl(host.Host, vuln.URL, host.Port, scheme))
+			targetUrl, err := cleanUrl(buildUrl(host.Host, vuln.URL, host.Port, scheme))
 			if err != nil {
 				return nil, fmt.Errorf("clean nikto targetUrl: %w", err)
 			}

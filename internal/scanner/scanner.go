@@ -30,6 +30,16 @@ var (
 	nucleiConfigPath string
 	zapConfigPath    string
 
+	newUUID            = func() string { return uuid.New().String() }
+	ensureDir          = helper.EnsureDir
+	runScanner         = runSingleScanner
+	setStatus          = store.SetStatus
+	setResult          = store.SetResult
+	execCommandContext = exec.CommandContext
+	writeFile          = os.WriteFile
+	statFile           = os.Stat
+	runScans           = runScansOnTargets
+
 	activeCancel = struct {
 		sync.Mutex
 		cancelMap map[string]context.CancelFunc
@@ -72,20 +82,19 @@ func outputsDirFromCtx(ctx context.Context) string {
 // StartScan initializes and runs requested scanners in parallel
 func StartScan(request *ScanRequest) (string, error) {
 	log.Printf("[StartScan] called with request: %+v", request)
-	var scanFailed atomic.Bool
 
 	// generate scan ID and create per-scan dirs
-	id := uuid.New().String()
+	id := newUUID()
 	scanReportsDir := filepath.Join(baseReportsDir, id)
 	scanOutputsDir := filepath.Join(baseOutputsDir, id)
 	log.Printf("[StartScan] created scan ID: %s, reports dir: %s, outputs dir: %s",
 		id, scanReportsDir, scanOutputsDir)
 
 	// ensure base and per-scan dirs
-	helper.EnsureDir(baseReportsDir)
-	helper.EnsureDir(baseOutputsDir)
-	helper.EnsureDir(scanReportsDir)
-	helper.EnsureDir(scanOutputsDir)
+	ensureDir(baseReportsDir)
+	ensureDir(baseOutputsDir)
+	ensureDir(scanReportsDir)
+	ensureDir(scanOutputsDir)
 
 	// context with cancel and per-scan dirs
 	ctx, cancel := context.WithCancel(context.Background())
@@ -111,46 +120,53 @@ func StartScan(request *ScanRequest) (string, error) {
 		StartedAt: time.Now(),
 		Status:    model.StatusRunning,
 	}
-	store.SetStatus(id, result)
+	setStatus(id, result)
 
-	go func(scanID string, scannerList []string, requestTargets []string, parentCtx context.Context) {
-		var wGroup sync.WaitGroup
-
-		for _, scanner := range scanners {
-			wGroup.Add(1)
-			go func(scannerName string) {
-				defer wGroup.Done()
-				log.Printf("[StartScan] starting scanner: %s", scannerName)
-				if err := runSingleScanner(ctx, scannerName, request.Targets); err != nil {
-					log.Printf("[StartScan] scanner %s failed: %v", scannerName, err)
-					scanFailed.Store(true)
-				}
-				log.Printf("[StartScan] scanner finished: %s", scannerName)
-			}(scanner)
-		}
-		wGroup.Wait()
-
+	go func() {
 		finished := result
 		now := time.Now()
 		finished.FinishedAt = &now
-
-		if scanFailed.Load() {
-			finished.Status = model.StatusFailed
-		} else {
-			finished.Status = model.StatusDone
-		}
-
-		store.SetResult(id, finished)
-		store.SetStatus(id, finished)
+		finished.Status = runScans(ctx, scanners, request.Targets)
+		setResult(id, finished)
+		setStatus(id, finished)
 
 		// cleanup
 		activeCancel.Lock()
 		delete(activeCancel.cancelMap, id)
 		activeCancel.Unlock()
 		log.Printf("[StartScan] scan %s finished and removed from activeCancel map", id)
-	}(id, scanners, request.Targets, ctx)
+	}()
 
 	return id, nil
+}
+
+func runScansOnTargets(
+	ctx context.Context,
+	scanners []string,
+	targets []string,
+) model.ScanStatus {
+	var scanFailed atomic.Bool
+	var wGroup sync.WaitGroup
+
+	for _, scanner := range scanners {
+		wGroup.Add(1)
+		go func(scannerName string) {
+			defer wGroup.Done()
+			log.Printf("[runScan] starting scanner: %s", scannerName)
+			if err := runScanner(ctx, scannerName, targets); err != nil {
+				log.Printf("[runScan] scanner %s failed: %v", scannerName, err)
+				scanFailed.Store(true)
+			}
+			log.Printf("[runScan] scanner finished: %s", scannerName)
+		}(scanner)
+	}
+	wGroup.Wait()
+
+	if scanFailed.Load() {
+		return model.StatusFailed
+	} else {
+		return model.StatusDone
+	}
 }
 
 // StopScan cancels active scan if possible
@@ -225,7 +241,7 @@ func runNikto(ctx context.Context, targets []string) error {
 		log.Printf("[runNikto] scanning target: %s -> report: %s, output: %s",
 			target, reportFile, outputFile)
 
-		cmd := exec.CommandContext(
+		cmd := execCommandContext(
 			ctx,
 			"nikto",
 			"-h", target,
@@ -242,13 +258,13 @@ func runNikto(ctx context.Context, targets []string) error {
 			log.Printf("[runNikto] error running nikto for %s: %v (output: %s)", target, err, string(output))
 		}
 
-		if writeErr := os.WriteFile(outputFile, output, 0o644); writeErr != nil {
+		if writeErr := writeFile(outputFile, output, 0o644); writeErr != nil {
 			log.Printf("[runNikto] failed to write nikto output for %s to %s: %v", target, outputFile, writeErr)
 		} else {
 			log.Printf("[runNikto] nikto output written for %s: %s", target, outputFile)
 		}
 
-		if _, err := os.Stat(reportFile); err == nil {
+		if _, err := statFile(reportFile); err == nil {
 			log.Printf("[runNikto] nikto report saved to %s", reportFile)
 		} else {
 			log.Printf("[runNikto] nikto did not produce report for %s (expected: %s): %v", target, reportFile, err)
@@ -290,7 +306,7 @@ func runNuclei(ctx context.Context, targets []string) error {
 		log.Printf("[runNuclei] scanning target: %s -> report: %s, output: %s",
 			target, reportFile, outputFile)
 
-		cmd := exec.CommandContext(
+		cmd := execCommandContext(
 			ctx,
 			"nuclei",
 			"-u", target,
@@ -305,13 +321,13 @@ func runNuclei(ctx context.Context, targets []string) error {
 			log.Printf("[runNuclei] error running nuclei for %s: %v (output: %s)", target, err, string(output))
 		}
 
-		if writeErr := os.WriteFile(outputFile, output, 0o644); writeErr != nil {
+		if writeErr := writeFile(outputFile, output, 0o644); writeErr != nil {
 			log.Printf("[runNuclei] failed to write nuclei output for %s to %s: %v", target, outputFile, writeErr)
 		} else {
 			log.Printf("[runNuclei] nuclei output written for %s: %s", target, outputFile)
 		}
 
-		if _, err := os.Stat(reportFile); err == nil {
+		if _, err := statFile(reportFile); err == nil {
 			log.Printf("[runNuclei] nuclei report saved to %s", reportFile)
 		} else {
 			log.Printf("[runNuclei] nuclei did not produce report for %s (expected: %s): %v", target, reportFile, err)
@@ -362,7 +378,7 @@ func runWapiti(ctx context.Context, targets []string) error {
 		log.Printf("[runWapiti] scanning target: %s -> report: %s, output: %s",
 			target, reportFile, outputFile)
 
-		cmd := exec.CommandContext(
+		cmd := execCommandContext(
 			ctx,
 			"wapiti",
 			"--flush-session",
@@ -378,13 +394,13 @@ func runWapiti(ctx context.Context, targets []string) error {
 			log.Printf("[runWapiti] error running wapiti for %s: %v (output: %s)", target, err, string(output))
 		}
 
-		if writeErr := os.WriteFile(outputFile, output, 0o644); writeErr != nil {
+		if writeErr := writeFile(outputFile, output, 0o644); writeErr != nil {
 			log.Printf("[runWapiti] failed to write wapiti output for %s to %s: %v", target, outputFile, writeErr)
 		} else {
 			log.Printf("[runWapiti] wapiti output written for %s: %s", target, outputFile)
 		}
 
-		if _, err := os.Stat(reportFile); err == nil {
+		if _, err := statFile(reportFile); err == nil {
 			log.Printf("[runWapiti] wapiti report saved to %s", reportFile)
 		} else {
 			log.Printf("[runWapiti] wapiti did not produce report for %s (expected: %s): %v", target, reportFile, err)
@@ -428,7 +444,7 @@ func runZap(ctx context.Context, targets []string) error {
 		log.Printf("[runZap] scanning target: %s -> report: %s, output: %s",
 			target, reportFile, outputFile)
 
-		cmd := exec.CommandContext(
+		cmd := execCommandContext(
 			ctx,
 			"zap",
 			"-cmd",
@@ -446,13 +462,13 @@ func runZap(ctx context.Context, targets []string) error {
 			log.Printf("[runZap] error running zap for %s: %v (output: %s)", target, err, string(output))
 		}
 
-		if writeErr := os.WriteFile(outputFile, output, 0o644); writeErr != nil {
+		if writeErr := writeFile(outputFile, output, 0o644); writeErr != nil {
 			log.Printf("[runZap] failed to write zap output for %s to %s: %v", target, outputFile, writeErr)
 		} else {
 			log.Printf("[runZap] zap output written for %s: %s", target, outputFile)
 		}
 
-		if _, err := os.Stat(reportFile); err == nil {
+		if _, err := statFile(reportFile); err == nil {
 			log.Printf("[runZap] zap report saved to %s", reportFile)
 		} else {
 			log.Printf("[runZap] zap did not produce report for %s (expected: %s): %v", target, reportFile, err)

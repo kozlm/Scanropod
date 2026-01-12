@@ -108,6 +108,12 @@ func resultHandler(ctx *gin.Context) {
 		return
 	}
 
+	if status.Status == model.StatusStopped {
+		log.Printf("[resultHandler] scan was stopped for id=%s", id)
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "scan was stopped"})
+		return
+	}
+
 	if status.Status != model.StatusDone {
 		log.Printf("[resultHandler] scan not ready for id=%s", id)
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "scan not ready"})
