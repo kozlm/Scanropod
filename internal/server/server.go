@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crypto/tls"
 	"log"
 	"net/http"
 	"os"
@@ -15,23 +16,26 @@ import (
 	"github.com/kozlm/scanropods/internal/store"
 )
 
-type SecurityConfig struct {
+type Config struct {
 	APIKeyEnabled bool
 	APIKey        string
+	HTTPS         bool
+	CertFile      string
+	KeyFile       string
 }
 
-var securityConfig SecurityConfig
+var config Config
 var baseDir string
 
 func apiKeyMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		if !securityConfig.APIKeyEnabled {
+		if !config.APIKeyEnabled {
 			ctx.Next()
 			return
 		}
 
 		key := ctx.GetHeader("X-API-Key")
-		if key == "" || key != securityConfig.APIKey {
+		if key == "" || key != config.APIKey {
 			ctx.AbortWithStatusJSON(
 				http.StatusUnauthorized,
 				gin.H{"error": "invalid or missing API key"},
@@ -43,11 +47,11 @@ func apiKeyMiddleware() gin.HandlerFunc {
 	}
 }
 
-func Run() error {
+func Run(config Config) error {
 	store.Init()
 	log.Println("[server] store initialized")
 
-	if securityConfig.APIKeyEnabled {
+	if config.APIKeyEnabled {
 		log.Println("[security] API key authentication enabled")
 	} else {
 		log.Println("[security] API key authentication disabled")
@@ -71,14 +75,24 @@ func Run() error {
 	r.POST("/scan/stop/:id", stopHandler)
 
 	server := &http.Server{
-		Addr:           ":8000",
+		Addr:           ":8443",
 		Handler:        r,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   0,
 		MaxHeaderBytes: 1 << 20, // 1 MB
+		TLSConfig: &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		},
 	}
 
-	log.Printf("[server] listening on %s", server.Addr)
+	if config.HTTPS {
+		log.Println("[server] HTTPS enabled")
+		log.Printf("[server] listening on https://localhost%s", server.Addr)
+		return server.ListenAndServeTLS(config.CertFile, config.KeyFile)
+	}
+
+	log.Println("[server] HTTPS disabled")
+	log.Printf("[server] listening on http://localhost%s", server.Addr)
 	return server.ListenAndServe()
 }
 
