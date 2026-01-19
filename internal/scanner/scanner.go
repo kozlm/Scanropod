@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/kozlm/scanropods/internal/helper"
-	"github.com/kozlm/scanropods/internal/model"
-	"github.com/kozlm/scanropods/internal/store"
+	"github.com/kozlm/scanropod/internal/helper"
+	"github.com/kozlm/scanropod/internal/model"
+	"github.com/kozlm/scanropod/internal/store"
 )
 
 type ScanRequest = model.ScanRequest

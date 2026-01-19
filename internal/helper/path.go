@@ -8,7 +8,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/kozlm/scanropods/internal/model"
+	"github.com/kozlm/scanropod/internal/model"
 )
 
 func CleanUrl(rawUrl string) (string, error) {

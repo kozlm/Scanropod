@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/kozlm/scanropods/internal/server"
+	"github.com/kozlm/scanropod/internal/server"
 )
 
 func main() {

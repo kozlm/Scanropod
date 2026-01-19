@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kozlm/scanropods/internal/aggregate"
-	"github.com/kozlm/scanropods/internal/helper"
-	"github.com/kozlm/scanropods/internal/model"
-	"github.com/kozlm/scanropods/internal/scanner"
-	"github.com/kozlm/scanropods/internal/store"
+	"github.com/kozlm/scanropod/internal/aggregate"
+	"github.com/kozlm/scanropod/internal/helper"
+	"github.com/kozlm/scanropod/internal/model"
+	"github.com/kozlm/scanropod/internal/scanner"
+	"github.com/kozlm/scanropod/internal/store"
 )
 
 type Config struct {

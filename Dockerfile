@@ -7,7 +7,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o scanropods ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o scanropod ./cmd/server
 
 RUN go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@v3.4.10
 #--------------------------------------
@@ -40,7 +40,7 @@ RUN set -eux; \
     ln -sf /usr/local/share/zaproxy/zap.sh /usr/local/bin/zap; \
     rm /tmp/ZAP.tar.gz
 
-# pobranie Nikto z repozytorium git
+# pobranie archiwum Nikto
 RUN set -eux; \
     wget -q "https://github.com/sullo/nikto/archive/refs/tags/2.5.0.tar.gz" -O /tmp/nikto.tar.gz; \
     mkdir -p /usr/local/share/nikto; \
@@ -54,17 +54,20 @@ RUN python3 -m pip install --no-cache-dir --break-system-packages "wapiti3==3.2.
 
 # kopiowanie Nuclei and pliku wykonywalnego projektu z buildera
 COPY --from=builder /go/bin/nuclei /usr/local/bin/nuclei
-COPY --from=builder /src/scanropods /usr/local/bin/scanropods
+COPY --from=builder /src/scanropod /usr/local/bin/scanropod
+# pobranie szablonó Nuclei
 RUN nuclei -update-templates
 
 # kopiowanie plików konfiguracyjnych
 COPY config config
 
 # dodanie uprawnień do wykonywania plików
-RUN chmod +x /usr/local/bin/scanropods /usr/local/bin/nuclei
+RUN chmod +x /usr/local/bin/scanropod /usr/local/bin/nuclei
 
 # eksponowanie portu 8000
 EXPOSE 8000
 
 # uruchomienie aplikacji jako ENTRYPOINT
-ENTRYPOINT ["/usr/local/bin/scanropods"]
+ENTRYPOINT ["/usr/local/bin/scanropod"]
+# domyślne uruchomienie bez żadnego klucza API
+CMD ["--no-api-key"]

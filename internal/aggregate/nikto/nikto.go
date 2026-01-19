@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kozlm/scanropods/internal/cwe"
-	"github.com/kozlm/scanropods/internal/helper"
-	"github.com/kozlm/scanropods/internal/model"
+	"github.com/kozlm/scanropod/internal/cwe"
+	"github.com/kozlm/scanropod/internal/helper"
+	"github.com/kozlm/scanropod/internal/model"
 )
 
 type hostResult struct {

@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kozlm/scanropods/internal/cwe"
-	"github.com/kozlm/scanropods/internal/model"
+	"github.com/kozlm/scanropod/internal/cwe"
+	"github.com/kozlm/scanropod/internal/model"
 )
 
 var (

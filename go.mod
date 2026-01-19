@@ -1,4 +1,4 @@
-module github.com/kozlm/scanropods
+module github.com/kozlm/scanropod
 
 go 1.21
 

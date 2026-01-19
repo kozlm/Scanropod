@@ -3,7 +3,7 @@ package store
 import (
 	"sync"
 
-	"github.com/kozlm/scanropods/internal/model"
+	"github.com/kozlm/scanropod/internal/model"
 )
 
 var (

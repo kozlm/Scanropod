@@ -3,7 +3,7 @@ package aggregate
 import (
 	"testing"
 
-	"github.com/kozlm/scanropods/internal/model"
+	"github.com/kozlm/scanropod/internal/model"
 )
 
 func TestGroupFindings(t *testing.T) {

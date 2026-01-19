@@ -1,0 +1,6 @@
+docker run \
+  -v /home/user/certs:/certs:ro \
+  scanropod \
+  --https \
+  --tls-cert /certs/cert.pem \
+  --tls-key /certs/key.pem

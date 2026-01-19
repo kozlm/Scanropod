@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kozlm/scanropods/internal/model"
+	"github.com/kozlm/scanropod/internal/model"
 )
 
 func TestEnsureDirSuccess(t *testing.T) {

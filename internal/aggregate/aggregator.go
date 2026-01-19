@@ -3,11 +3,11 @@ package aggregate
 import (
 	"time"
 
-	"github.com/kozlm/scanropods/internal/aggregate/nikto"
-	"github.com/kozlm/scanropods/internal/aggregate/nuclei"
-	"github.com/kozlm/scanropods/internal/aggregate/wapiti"
-	"github.com/kozlm/scanropods/internal/aggregate/zap"
-	"github.com/kozlm/scanropods/internal/model"
+	"github.com/kozlm/scanropod/internal/aggregate/nikto"
+	"github.com/kozlm/scanropod/internal/aggregate/nuclei"
+	"github.com/kozlm/scanropod/internal/aggregate/wapiti"
+	"github.com/kozlm/scanropod/internal/aggregate/zap"
+	"github.com/kozlm/scanropod/internal/model"
 )
 
 type BuilderConfig struct {
