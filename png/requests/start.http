@@ -1,0 +1,7 @@
+POST http://localhost:8000/scan/start
+Content-Type: application/json
+
+{
+  "targets": ["http://192.168.0.156/DVWA/vulnerabilities/xss_r/"],
+  "scanners": ["nuclei"]
+}
