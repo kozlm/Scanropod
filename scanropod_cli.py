@@ -171,9 +171,9 @@ def build_parser() -> argparse.ArgumentParser:
     sub = p.add_subparsers(dest="cmd", required=True)
 
     s = sub.add_parser("start", help="Start a new scan")
-    s.add_argument("--target", action="append", default=[], help="Targets to scan")
+    s.add_argument("--target", action="append", default=[], help="Target to scan")
     s.add_argument("--targets-file", help="File with targets (one per line)")
-    s.add_argument("--scanner", action="append", default=[], help="Scanners to use")
+    s.add_argument("--scanner", action="append", default=[], help="Scanner to use")
 
     sub.add_parser("status", help="Get scan status").add_argument("scan_id")
     sub.add_parser("result", help="Get scan result").add_argument("scan_id")

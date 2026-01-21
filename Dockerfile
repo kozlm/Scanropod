@@ -55,7 +55,7 @@ RUN python3 -m pip install --no-cache-dir --break-system-packages "wapiti3==3.2.
 # kopiowanie Nuclei and pliku wykonywalnego projektu z buildera
 COPY --from=builder /go/bin/nuclei /usr/local/bin/nuclei
 COPY --from=builder /src/scanropod /usr/local/bin/scanropod
-# pobranie szablonó Nuclei
+# pobranie szablonów Nuclei
 RUN nuclei -update-templates
 
 # kopiowanie plików konfiguracyjnych
@@ -69,5 +69,5 @@ EXPOSE 8443
 
 # uruchomienie aplikacji jako ENTRYPOINT
 ENTRYPOINT ["/usr/local/bin/scanropod"]
-# domyślne uruchomienie bez żadnego klucza API
+# domyślne uruchomienie bez klucza API
 CMD ["--no-api-key"]
