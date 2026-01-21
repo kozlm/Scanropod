@@ -65,7 +65,7 @@ COPY config config
 RUN chmod +x /usr/local/bin/scanropod /usr/local/bin/nuclei
 
 # eksponowanie portu 8000
-EXPOSE 8000
+EXPOSE 8443
 
 # uruchomienie aplikacji jako ENTRYPOINT
 ENTRYPOINT ["/usr/local/bin/scanropod"]
