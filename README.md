@@ -66,15 +66,16 @@ manually install and configure external scanners.
 ### Build the image
 
 ```bash
-docker build -t scanropods .
+docker build -t scanropod .
 ```
 
 ### Run the container
 
 ```bash
 docker run --rm \
-  −v /home/user/certs:/certs:ro \
-  scanropods \
+  -p 8443:8443 \
+  -v /home/user/certs:/certs:ro \
+  scanropod \
   --api-key secret \
   --https \
   --tls-cert /certs/server.crt \
@@ -86,8 +87,8 @@ docker run --rm \
 ### Build and run the server
 
 ```bash
-go build -o scanropods
-./scanropods --api-key secret --https --tls-cert cert.pem --tls-key key.pem
+go build -o scanropod
+./scanropod --api-key secret --https --tls-cert cert.pem --tls-key key.pem
 ```
 
 The server listens on port `8443` by default.
@@ -99,7 +100,7 @@ A Python-based CLI client is provided to simplify interaction with the API.
 ## Basic usage
 
 ```bash
-scanropods_cli.py start \
+scanropod_cli.py start \
   --target https://example.com \
   --api-key secret \
   --insecure

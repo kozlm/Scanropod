@@ -1,4 +1,4 @@
-package wapiti
+package report
 
 import (
 	"encoding/json"
@@ -6,25 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kozlm/scanropod/internal/cwe"
 	"github.com/kozlm/scanropod/internal/model"
 )
-
-var (
-	defaultReadFile      = readFile
-	defaultReadDir       = readDir
-	defaultCleanUrl      = cleanUrl
-	defaultLoadWapitiMap = loadWapitiMap
-)
-
-func cleanup(t *testing.T) {
-	t.Cleanup(func() {
-		readFile = defaultReadFile
-		readDir = defaultReadDir
-		cleanUrl = defaultCleanUrl
-		loadWapitiMap = defaultLoadWapitiMap
-	})
-}
 
 func TestIsWapitiReportFile(t *testing.T) {
 	tests := []struct {
@@ -37,18 +20,18 @@ func TestIsWapitiReportFile(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		if got := isWapitiReportFile(test.name); got != test.expected {
+		if got := isReportFile(test.name, "wapiti-"); got != test.expected {
 			t.Errorf("for %q expected %v, got %v", test.name, test.expected, got)
 		}
 	}
 }
 
-func TestParseSingleReportSuccess(t *testing.T) {
+func TestParseWapitiSingleReportSuccess(t *testing.T) {
 	cleanup(t)
 
 	readFile = func(string) ([]byte, error) {
-		return json.Marshal(result{
-			Infos: info{
+		return json.Marshal(wapitiReport{
+			Infos: wapitiInfo{
 				Target: "http://example.com",
 			},
 			Vulnerabilities: map[string][]wapitiFinding{
@@ -66,7 +49,7 @@ func TestParseSingleReportSuccess(t *testing.T) {
 		})
 	}
 
-	cleanUrl = func(string) (string, error) {
+	cleanURL = func(string) (string, error) {
 		return "http://example.com", nil
 	}
 
@@ -85,12 +68,12 @@ func TestParseSingleReportSuccess(t *testing.T) {
 	}
 	tmpFile.Close()
 
-	cweMap, err := cwe.LoadWapitiMap(tmpFile.Name())
+	cweLookup, err := loadWapitiMap(tmpFile.Name())
 	if err != nil {
 		t.Fatalf("failed to load wapiti map: %v", err)
 	}
 
-	findings, err := parseSingleReport("ignored.json", cweMap)
+	findings, err := parseWapitiFile("ignored.json", cweLookup)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -114,12 +97,12 @@ func TestParseSingleReportSuccess(t *testing.T) {
 	}
 }
 
-func TestParseSingleReportCleanUrlFail(t *testing.T) {
+func TestParseWapitiSingleReportCleanUrlFail(t *testing.T) {
 	cleanup(t)
 
 	readFile = func(string) ([]byte, error) {
-		return json.Marshal(result{
-			Infos: info{
+		return json.Marshal(wapitiReport{
+			Infos: wapitiInfo{
 				Target: "bad-url",
 			},
 			Vulnerabilities: map[string][]wapitiFinding{
@@ -130,17 +113,17 @@ func TestParseSingleReportCleanUrlFail(t *testing.T) {
 		})
 	}
 
-	cleanUrl = func(string) (string, error) {
+	cleanURL = func(string) (string, error) {
 		return "", errors.New("error")
 	}
 
-	_, err := parseSingleReport("ignored.json", &cwe.WapitiMap{})
+	_, err := parseWapitiFile("ignored.json", &wapitiCWEMap{})
 	if err == nil {
-		t.Fatal("expected error from cleanUrl")
+		t.Fatal("expected error from cleanURL")
 	}
 }
 
-func TestParseReports(t *testing.T) {
+func TestParseWapitiReports(t *testing.T) {
 	cleanup(t)
 
 	tmpFile, err := os.CreateTemp("", "wapiti-map-*.csv")
@@ -166,8 +149,8 @@ func TestParseReports(t *testing.T) {
 	}
 
 	readFile = func(string) ([]byte, error) {
-		return json.Marshal(result{
-			Infos: info{
+		return json.Marshal(wapitiReport{
+			Infos: wapitiInfo{
 				Target: "http://example.com",
 			},
 			Vulnerabilities: map[string][]wapitiFinding{
@@ -181,11 +164,11 @@ func TestParseReports(t *testing.T) {
 		})
 	}
 
-	cleanUrl = func(string) (string, error) {
+	cleanURL = func(string) (string, error) {
 		return "http://example.com", nil
 	}
 
-	findings, err := ParseReports("scan1", tmpFile.Name())
+	findings, err := parseWapitiReports("scan1", tmpFile.Name())
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -194,12 +177,3 @@ func TestParseReports(t *testing.T) {
 		t.Fatalf("expected 1 finding, got %d", len(findings))
 	}
 }
-
-type fakeDirEntry struct {
-	name string
-}
-
-func (f fakeDirEntry) Name() string               { return f.name }
-func (f fakeDirEntry) IsDir() bool                { return false }
-func (f fakeDirEntry) Type() os.FileMode          { return 0 }
-func (f fakeDirEntry) Info() (os.FileInfo, error) { return nil, nil }

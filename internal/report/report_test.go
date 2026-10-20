@@ -1,13 +1,51 @@
-package aggregate
+package report
 
 import (
+	"os"
 	"testing"
 
 	"github.com/kozlm/scanropod/internal/model"
 )
 
+// Test seam defaults; tests override the package-level seams and
+// cleanup restores them.
+var (
+	defaultReadFile      = readFile
+	defaultReadDir       = readDir
+	defaultCleanURL      = cleanURL
+	defaultBuildURL      = buildURL
+	defaultLoadZapMap    = loadZapMap
+	defaultLoadNiktoMap  = loadNiktoMap
+	defaultLoadNucleiMap = loadNucleiMap
+	defaultLoadWapitiMap = loadWapitiMap
+)
+
+func cleanup(t *testing.T) {
+	t.Helper()
+
+	t.Cleanup(func() {
+		readFile = defaultReadFile
+		readDir = defaultReadDir
+		cleanURL = defaultCleanURL
+		buildURL = defaultBuildURL
+		loadZapMap = defaultLoadZapMap
+		loadNiktoMap = defaultLoadNiktoMap
+		loadNucleiMap = defaultLoadNucleiMap
+		loadWapitiMap = defaultLoadWapitiMap
+	})
+}
+
+type fakeDirEntry struct {
+	name string
+}
+
+func (f fakeDirEntry) Name() string               { return f.name }
+func (f fakeDirEntry) IsDir() bool                { return false }
+func (f fakeDirEntry) Type() os.FileMode          { return 0 }
+func (f fakeDirEntry) Info() (os.FileInfo, error) { return nil, nil }
+
 func TestGroupFindings(t *testing.T) {
-	findings := []model.NormalizedFinding{
+	findings := []normalizedFinding{
 		{
 			TargetURL: "http://example.com",
 			CWEID:     "79",
@@ -41,7 +79,7 @@ func TestGroupFindings(t *testing.T) {
 }
 
 func TestGroupFindingsMissingTargetURL(t *testing.T) {
-	findings := []model.NormalizedFinding{
+	findings := []normalizedFinding{
 		{
 			TargetURL: "",
 			CWEID:     "89",
@@ -58,7 +96,7 @@ func TestGroupFindingsMissingTargetURL(t *testing.T) {
 }
 
 func TestGroupFindingsMultiplePayloadsSameScanner(t *testing.T) {
-	findings := []model.NormalizedFinding{
+	findings := []normalizedFinding{
 		{
 			TargetURL: "http://a",
 			CWEID:     "79",
@@ -84,7 +122,7 @@ func TestGroupFindingsMultiplePayloadsSameScanner(t *testing.T) {
 }
 
 func TestBuildNoPathsProvided(t *testing.T) {
-	report, err := Build("scan1", BuilderConfig{})
+	report, err := Build("scan1", Config{})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -95,7 +133,7 @@ func TestBuildNoPathsProvided(t *testing.T) {
 }
 
 func TestBuildInvalidPath(t *testing.T) {
-	_, err := Build("scan1", BuilderConfig{
+	_, err := Build("scan1", Config{
 		ZapCSVPath: "does-not-exist.csv",
 	})
 

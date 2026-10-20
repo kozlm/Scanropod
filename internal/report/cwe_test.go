@@ -1,4 +1,4 @@
-package cwe
+package report
 
 import (
 	"os"
@@ -35,7 +35,7 @@ func TestLoadWapitiMapValidCSV(t *testing.T) {
 			"TLS/SSL misconfigurations,326,expired certificate\n",
 	)
 
-	m, err := LoadWapitiMap(path)
+	m, err := loadWapitiMap(path)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -46,7 +46,7 @@ func TestLoadWapitiMapValidCSV(t *testing.T) {
 }
 
 func TestWapitiMapLookupNil(t *testing.T) {
-	var m *WapitiMap
+	var m *wapitiCWEMap
 
 	if got := m.Lookup("SQL Injection", ""); got != "0" {
 		t.Fatalf("expected 0, got %q", got)
@@ -59,7 +59,7 @@ func TestWapitiMapLookupByName(t *testing.T) {
 			"SQL Injection,89,\n",
 	)
 
-	m, err := LoadWapitiMap(path)
+	m, err := loadWapitiMap(path)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -76,7 +76,7 @@ func TestWapitiMapLookupTLSByPhrase(t *testing.T) {
 			"TLS/SSL misconfigurations,326,expired certificate\n",
 	)
 
-	m, err := LoadWapitiMap(path)
+	m, err := loadWapitiMap(path)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -95,7 +95,7 @@ func TestWapitiMapLookupTLSNoPhraseMatch(t *testing.T) {
 			"TLS/SSL misconfigurations,326,expired certificate\n",
 	)
 
-	m, err := LoadWapitiMap(path)
+	m, err := loadWapitiMap(path)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -112,7 +112,7 @@ func TestWapitiMapLookupUnknown(t *testing.T) {
 			"SQL Injection,89,\n",
 	)
 
-	m, err := LoadWapitiMap(path)
+	m, err := loadWapitiMap(path)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

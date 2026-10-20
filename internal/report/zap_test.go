@@ -1,4 +1,4 @@
-package zap
+package report
 
 import (
 	"encoding/json"
@@ -6,25 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kozlm/scanropod/internal/cwe"
 	"github.com/kozlm/scanropod/internal/model"
 )
-
-var (
-	defaultReadFile   = readFile
-	defaultReadDir    = readDir
-	defaultCleanUrl   = cleanUrl
-	defaultLoadZapMap = loadZapMap
-)
-
-func cleanup(t *testing.T) {
-	t.Cleanup(func() {
-		readFile = defaultReadFile
-		readDir = defaultReadDir
-		cleanUrl = defaultCleanUrl
-		loadZapMap = defaultLoadZapMap
-	})
-}
 
 func TestIsZapReportFile(t *testing.T) {
 	tests := []struct {
@@ -37,17 +20,17 @@ func TestIsZapReportFile(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		if got := isZapReportFile(test.name); got != test.expected {
+		if got := isReportFile(test.name, "zap-"); got != test.expected {
 			t.Errorf("for %q expected %v, got %v", test.name, test.expected, got)
 		}
 	}
 }
 
-func TestParseSingleReportSuccess(t *testing.T) {
+func TestParseZapSingleReportSuccess(t *testing.T) {
 	cleanup(t)
 
 	readFile = func(string) ([]byte, error) {
-		return json.Marshal(result{
+		return json.Marshal(zapReport{
 			Sites: []zapSite{
 				{
 					Alerts: []zapAlert{
@@ -71,11 +54,11 @@ func TestParseSingleReportSuccess(t *testing.T) {
 		})
 	}
 
-	cleanUrl = func(string) (string, error) {
+	cleanURL = func(string) (string, error) {
 		return "http://example.com/test", nil
 	}
 
-	findings, err := parseSingleReport("ignored.json", cwe.ZapMap{
+	findings, err := parseZapFile("ignored.json", cweMap{
 		"10001": "79",
 	})
 
@@ -102,11 +85,11 @@ func TestParseSingleReportSuccess(t *testing.T) {
 	}
 }
 
-func TestParseSingleReportCleanUrlFail(t *testing.T) {
+func TestParseZapSingleReportCleanUrlFail(t *testing.T) {
 	cleanup(t)
 
 	readFile = func(string) ([]byte, error) {
-		return json.Marshal(result{
+		return json.Marshal(zapReport{
 			Sites: []zapSite{
 				{
 					Alerts: []zapAlert{
@@ -122,21 +105,21 @@ func TestParseSingleReportCleanUrlFail(t *testing.T) {
 		})
 	}
 
-	cleanUrl = func(string) (string, error) {
+	cleanURL = func(string) (string, error) {
 		return "", errors.New("error")
 	}
 
-	_, err := parseSingleReport("ignored.json", cwe.ZapMap{})
+	_, err := parseZapFile("ignored.json", cweMap{})
 	if err == nil {
-		t.Fatal("expected error from cleanUrl")
+		t.Fatal("expected error from cleanURL")
 	}
 }
 
-func TestParseReports(t *testing.T) {
+func TestParseZapReports(t *testing.T) {
 	cleanup(t)
 
-	loadZapMap = func(string) (cwe.ZapMap, error) {
-		return cwe.ZapMap{"1": "22"}, nil
+	loadZapMap = func(string) (cweMap, error) {
+		return cweMap{"1": "22"}, nil
 	}
 
 	readDir = func(string) ([]os.DirEntry, error) {
@@ -147,7 +130,7 @@ func TestParseReports(t *testing.T) {
 	}
 
 	readFile = func(string) ([]byte, error) {
-		return json.Marshal(result{
+		return json.Marshal(zapReport{
 			Sites: []zapSite{
 				{
 					Alerts: []zapAlert{
@@ -163,11 +146,11 @@ func TestParseReports(t *testing.T) {
 		})
 	}
 
-	cleanUrl = func(string) (string, error) {
+	cleanURL = func(string) (string, error) {
 		return "http://example.com", nil
 	}
 
-	findings, err := ParseReports("scan1", "map.csv")
+	findings, err := parseZapReports("scan1", "map.csv")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -176,12 +159,3 @@ func TestParseReports(t *testing.T) {
 		t.Fatalf("expected 1 finding, got %d", len(findings))
 	}
 }
-
-type fakeDirEntry struct {
-	name string
-}
-
-func (f fakeDirEntry) Name() string               { return f.name }
-func (f fakeDirEntry) IsDir() bool                { return false }
-func (f fakeDirEntry) Type() os.FileMode          { return 0 }
-func (f fakeDirEntry) Info() (os.FileInfo, error) { return nil, nil }

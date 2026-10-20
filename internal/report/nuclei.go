@@ -1,19 +1,41 @@
-package nuclei
+package report
 
 import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/kozlm/scanropod/internal/cwe"
-	"github.com/kozlm/scanropod/internal/helper"
 	"github.com/kozlm/scanropod/internal/model"
 )
 
-type templateResult struct {
+// parseNucleiReports reads all Nuclei JSON files for given scanID
+func parseNucleiReports(scanID, nucleiCSVPath string) ([]normalizedFinding, error) {
+	cweIDMap, err := loadNucleiMap(nucleiCSVPath)
+	if err != nil {
+		return nil, fmt.Errorf("load nuclei cwe map: %w", err)
+	}
+
+	paths, err := collectReportFiles(scanID, "nuclei-")
+	if err != nil {
+		return nil, err
+	}
+
+	var out []normalizedFinding
+	for _, path := range paths {
+		name := filepath.Base(path)
+		fileFindings, err := parseNucleiFile(path, cweIDMap)
+		if err != nil {
+			return nil, fmt.Errorf("parse nuclei report %s: %w", name, err)
+		}
+		out = append(out, fileFindings...)
+	}
+
+	return out, nil
+}
+
+type nucleiTemplateResult struct {
 	TemplateID      string `json:"template-id"`
 	TemplatePath    string `json:"template-path"`
 	TemplateEncoded string `json:"template-encoded"`
@@ -36,66 +58,24 @@ type nucleiFindingPayload struct {
 	URL        string          `json:"url"`
 }
 
-var (
-	loadNucleiMap = cwe.LoadNucleiMap
-	readDir       = os.ReadDir
-	readFile      = os.ReadFile
-	cleanUrl      = helper.CleanUrl
-)
-
-// ParseReports reads all Nuclei JSON files for given scanID
-func ParseReports(scanID, nucleiCSVPath string) ([]model.NormalizedFinding, error) {
-	cweMap, err := loadNucleiMap(nucleiCSVPath)
-	if err != nil {
-		return nil, fmt.Errorf("load nuclei cwe map: %w", err)
-	}
-
-	reportsDir := filepath.Join("reports", scanID)
-	entries, err := readDir(reportsDir)
-	if err != nil {
-		return nil, fmt.Errorf("read reports dir: %w", err)
-	}
-
-	var out []model.NormalizedFinding
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		name := entry.Name()
-		if !isNucleiReportFile(name) {
-			continue
-		}
-
-		path := filepath.Join(reportsDir, name)
-		fileFindings, err := parseSingleReport(path, cweMap)
-		if err != nil {
-			return nil, fmt.Errorf("parse nuclei report %s: %w", name, err)
-		}
-		out = append(out, fileFindings...)
-	}
-
-	return out, nil
+var loadNucleiMap = func(path string) (cweMap, error) {
+	return loadMap(path, "nuclei")
 }
 
-func isNucleiReportFile(name string) bool {
-	return filepath.Ext(name) == ".json" && strings.HasPrefix(name, "nuclei-")
-}
-
-func parseSingleReport(path string, cweMap cwe.NucleiMap) ([]model.NormalizedFinding, error) {
+func parseNucleiFile(path string, cweIDMap cweMap) ([]normalizedFinding, error) {
 	data, err := readFile(path)
 	if err != nil {
 		return nil, err
 	}
 
 	// Nuclei writes JSON array or JSON lines
-	var templates []templateResult
+	var templates []nucleiTemplateResult
 	if err := json.Unmarshal(data, &templates); err != nil {
 		// try JSON lines
-		templates = []templateResult{}
+		templates = []nucleiTemplateResult{}
 		decoder := json.NewDecoder(strings.NewReader(string(data)))
 		for {
-			var template templateResult
+			var template nucleiTemplateResult
 			if err := decoder.Decode(&template); err != nil {
 				if err.Error() == "EOF" || err == io.EOF {
 					break
@@ -106,15 +86,15 @@ func parseSingleReport(path string, cweMap cwe.NucleiMap) ([]model.NormalizedFin
 		}
 	}
 
-	var findings []model.NormalizedFinding
+	var findings []normalizedFinding
 
 	for _, template := range templates {
-		targetUrl, err := cleanUrl(template.URL)
+		targetUrl, err := cleanURL(template.URL)
 		if err != nil {
 			return nil, fmt.Errorf("clean nuclei targetUrl: %w", err)
 		}
 
-		cweID := cweMap[template.TemplateID]
+		cweID := cweIDMap[template.TemplateID]
 		if cweID == "" {
 			cweID = "0"
 		}
@@ -127,7 +107,7 @@ func parseSingleReport(path string, cweMap cwe.NucleiMap) ([]model.NormalizedFin
 			URL:        template.URL,
 		}
 
-		findings = append(findings, model.NormalizedFinding{
+		findings = append(findings, normalizedFinding{
 			TargetURL: targetUrl,
 			CWEID:     cweID,
 			Scanner:   model.ScannerNuclei,

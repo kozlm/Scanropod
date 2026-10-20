@@ -1,4 +1,4 @@
-package nikto
+package report
 
 import (
 	"encoding/json"
@@ -6,27 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kozlm/scanropod/internal/cwe"
 	"github.com/kozlm/scanropod/internal/model"
 )
-
-var (
-	defaultReadFile     = readFile
-	defaultReadDir      = readDir
-	defaultLoadNiktoMap = loadNiktoMap
-	defaultBuildUrl     = buildUrl
-	defaultCleanUrl     = cleanUrl
-)
-
-func cleanup(t *testing.T) {
-	t.Cleanup(func() {
-		readFile = defaultReadFile
-		readDir = defaultReadDir
-		loadNiktoMap = defaultLoadNiktoMap
-		buildUrl = defaultBuildUrl
-		cleanUrl = defaultCleanUrl
-	})
-}
 
 func TestIsNiktoReportFile(t *testing.T) {
 	tests := []struct {
@@ -39,21 +20,21 @@ func TestIsNiktoReportFile(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		if got := isNiktoReportFile(test.name); got != test.expected {
+		if got := isReportFile(test.name, "nikto-"); got != test.expected {
 			t.Errorf("for %q expected %v, got %v", test.name, test.expected, got)
 		}
 	}
 }
 
-func TestParseSingleReportSuccess(t *testing.T) {
+func TestParseNiktoSingleReportSuccess(t *testing.T) {
 	cleanup(t)
 
 	readFile = func(string) ([]byte, error) {
-		return json.Marshal([]hostResult{
+		return json.Marshal([]niktoHostResult{
 			{
 				Host: "example.com",
 				Port: "80",
-				Vulnerabilities: []vulnEntry{
+				Vulnerabilities: []niktoVulnEntry{
 					{
 						ID:     "123",
 						Method: "GET",
@@ -65,15 +46,15 @@ func TestParseSingleReportSuccess(t *testing.T) {
 		})
 	}
 
-	buildUrl = func(host, path, port, scheme string) string {
+	buildURL = func(host, path, port, scheme string) string {
 		return "RAW_URL"
 	}
 
-	cleanUrl = func(string) (string, error) {
+	cleanURL = func(string) (string, error) {
 		return "http://example.com/test", nil
 	}
 
-	findings, err := parseSingleReport("ignored.json", "http", cwe.NiktoMap{
+	findings, err := parseNiktoFile("ignored.json", "http", cweMap{
 		"123": "79",
 	})
 
@@ -100,15 +81,15 @@ func TestParseSingleReportSuccess(t *testing.T) {
 	}
 }
 
-func TestParseSingleReportCleanUrlFail(t *testing.T) {
+func TestParseNiktoSingleReportCleanUrlFail(t *testing.T) {
 	cleanup(t)
 
 	readFile = func(string) ([]byte, error) {
-		return json.Marshal([]hostResult{
+		return json.Marshal([]niktoHostResult{
 			{
 				Host: "example.com",
 				Port: "80",
-				Vulnerabilities: []vulnEntry{
+				Vulnerabilities: []niktoVulnEntry{
 					{
 						ID:     "123",
 						Method: "GET",
@@ -120,24 +101,24 @@ func TestParseSingleReportCleanUrlFail(t *testing.T) {
 		})
 	}
 
-	buildUrl = func(string, string, string, string) string {
+	buildURL = func(string, string, string, string) string {
 		return "bad-url"
 	}
 
-	cleanUrl = func(string) (string, error) {
+	cleanURL = func(string) (string, error) {
 		return "", errors.New("error")
 	}
-	_, err := parseSingleReport("ignored", "http", cwe.NiktoMap{})
+	_, err := parseNiktoFile("ignored", "http", cweMap{})
 	if err == nil {
-		t.Fatal("expected error from cleanUrl")
+		t.Fatal("expected error from cleanURL")
 	}
 }
 
-func TestParseReports(t *testing.T) {
+func TestParseNiktoReports(t *testing.T) {
 	cleanup(t)
 
-	loadNiktoMap = func(string) (cwe.NiktoMap, error) {
-		return cwe.NiktoMap{"1": "22"}, nil
+	loadNiktoMap = func(string) (cweMap, error) {
+		return cweMap{"1": "22"}, nil
 	}
 
 	readDir = func(string) ([]os.DirEntry, error) {
@@ -148,25 +129,25 @@ func TestParseReports(t *testing.T) {
 	}
 
 	readFile = func(string) ([]byte, error) {
-		return json.Marshal([]hostResult{
+		return json.Marshal([]niktoHostResult{
 			{
 				Host: "example.com",
-				Vulnerabilities: []vulnEntry{
+				Vulnerabilities: []niktoVulnEntry{
 					{ID: "1", URL: "/"},
 				},
 			},
 		})
 	}
 
-	buildUrl = func(string, string, string, string) string {
+	buildURL = func(string, string, string, string) string {
 		return "RAW"
 	}
 
-	cleanUrl = func(string) (string, error) {
+	cleanURL = func(string) (string, error) {
 		return "http://example.com/", nil
 	}
 
-	findings, err := ParseReports("scan1", "map.csv")
+	findings, err := parseNiktoReports("scan1", "map.csv")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -175,12 +156,3 @@ func TestParseReports(t *testing.T) {
 		t.Fatalf("expected 1 finding, got %d", len(findings))
 	}
 }
-
-type fakeDirEntry struct {
-	name string
-}
-
-func (f fakeDirEntry) Name() string               { return f.name }
-func (f fakeDirEntry) IsDir() bool                { return false }
-func (f fakeDirEntry) Type() os.FileMode          { return 0 }
-func (f fakeDirEntry) Info() (os.FileInfo, error) { return nil, nil }

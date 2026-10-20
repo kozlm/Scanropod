@@ -5,7 +5,6 @@ go 1.21
 require (
 	github.com/gin-gonic/gin v1.9.0
 	github.com/google/uuid v1.6.0
-	github.com/zaproxy/zap-api-go v0.0.0-20231219145106-e9ebb9695484
 )
 
 require (

@@ -1,4 +1,4 @@
-package nuclei
+package report
 
 import (
 	"encoding/json"
@@ -6,25 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kozlm/scanropod/internal/cwe"
 	"github.com/kozlm/scanropod/internal/model"
 )
-
-var (
-	defaultReadFile      = readFile
-	defaultReadDir       = readDir
-	defaultLoadNucleiMap = loadNucleiMap
-	defaultCleanUrl      = cleanUrl
-)
-
-func cleanup(t *testing.T) {
-	t.Cleanup(func() {
-		readFile = defaultReadFile
-		readDir = defaultReadDir
-		loadNucleiMap = defaultLoadNucleiMap
-		cleanUrl = defaultCleanUrl
-	})
-}
 
 func TestIsNucleiReportFile(t *testing.T) {
 	tests := []struct {
@@ -37,17 +20,17 @@ func TestIsNucleiReportFile(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		if got := isNucleiReportFile(test.name); got != test.expected {
+		if got := isReportFile(test.name, "nuclei-"); got != test.expected {
 			t.Errorf("for %q expected %v, got %v", test.name, test.expected, got)
 		}
 	}
 }
 
-func TestParseSingleReportSuccess(t *testing.T) {
+func TestParseNucleiSingleReportSuccess(t *testing.T) {
 	cleanup(t)
 
 	readFile = func(string) ([]byte, error) {
-		return json.Marshal([]templateResult{
+		return json.Marshal([]nucleiTemplateResult{
 			{
 				TemplateID: "tpl-1",
 				URL:        "http://example.com/test",
@@ -57,11 +40,11 @@ func TestParseSingleReportSuccess(t *testing.T) {
 		})
 	}
 
-	cleanUrl = func(string) (string, error) {
+	cleanURL = func(string) (string, error) {
 		return "http://example.com/test", nil
 	}
 
-	findings, err := parseSingleReport("ignored.json", cwe.NucleiMap{
+	findings, err := parseNucleiFile("ignored.json", cweMap{
 		"tpl-1": "79",
 	})
 
@@ -88,30 +71,30 @@ func TestParseSingleReportSuccess(t *testing.T) {
 	}
 }
 
-func TestParseSingleReportCleanUrlFail(t *testing.T) {
+func TestParseNucleiSingleReportCleanUrlFail(t *testing.T) {
 	cleanup(t)
 
 	readFile = func(string) ([]byte, error) {
-		return json.Marshal([]templateResult{
+		return json.Marshal([]nucleiTemplateResult{
 			{TemplateID: "tpl", URL: "bad-url"},
 		})
 	}
 
-	cleanUrl = func(string) (string, error) {
+	cleanURL = func(string) (string, error) {
 		return "", errors.New("error")
 	}
 
-	_, err := parseSingleReport("ignored.json", cwe.NucleiMap{})
+	_, err := parseNucleiFile("ignored.json", cweMap{})
 	if err == nil {
-		t.Fatal("expected error from cleanUrl")
+		t.Fatal("expected error from cleanURL")
 	}
 }
 
-func TestParseReports(t *testing.T) {
+func TestParseNucleiReports(t *testing.T) {
 	cleanup(t)
 
-	loadNucleiMap = func(string) (cwe.NucleiMap, error) {
-		return cwe.NucleiMap{"tpl": "22"}, nil
+	loadNucleiMap = func(string) (cweMap, error) {
+		return cweMap{"tpl": "22"}, nil
 	}
 
 	readDir = func(string) ([]os.DirEntry, error) {
@@ -122,16 +105,16 @@ func TestParseReports(t *testing.T) {
 	}
 
 	readFile = func(string) ([]byte, error) {
-		return json.Marshal([]templateResult{
+		return json.Marshal([]nucleiTemplateResult{
 			{TemplateID: "tpl", URL: "http://example.com"},
 		})
 	}
 
-	cleanUrl = func(string) (string, error) {
+	cleanURL = func(string) (string, error) {
 		return "http://example.com", nil
 	}
 
-	findings, err := ParseReports("scan1", "map.csv")
+	findings, err := parseNucleiReports("scan1", "map.csv")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -140,12 +123,3 @@ func TestParseReports(t *testing.T) {
 		t.Fatalf("expected 1 finding, got %d", len(findings))
 	}
 }
-
-type fakeDirEntry struct {
-	name string
-}
-
-func (f fakeDirEntry) Name() string               { return f.name }
-func (f fakeDirEntry) IsDir() bool                { return false }
-func (f fakeDirEntry) Type() os.FileMode          { return 0 }
-func (f fakeDirEntry) Info() (os.FileInfo, error) { return nil, nil }

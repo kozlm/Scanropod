@@ -1,19 +1,18 @@
+// Package scanner coordinates vulnerability scans: it manages scan
+// lifecycle (starting, stopping, status tracking) and runs the external
+// scanner binaries (zap, nikto, nuclei, wapiti) as subprocesses.
 package scanner
 
 import (
 	"context"
 	"fmt"
 	"log"
-	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/kozlm/scanropod/internal/helper"
 	"github.com/kozlm/scanropod/internal/model"
 	"github.com/kozlm/scanropod/internal/store"
 )
@@ -30,15 +29,10 @@ var (
 	nucleiConfigPath string
 	zapConfigPath    string
 
-	newUUID            = func() string { return uuid.New().String() }
-	ensureDir          = helper.EnsureDir
-	runScanner         = runSingleScanner
-	setStatus          = store.SetStatus
-	setResult          = store.SetResult
-	execCommandContext = exec.CommandContext
-	writeFile          = os.WriteFile
-	statFile           = os.Stat
-	runScans           = runScansOnTargets
+	newUUID   = func() string { return uuid.New().String() }
+	setStatus = store.SetStatus
+	setResult = store.SetResult
+	runScans  = runScansOnTargets
 
 	activeCancel = struct {
 		sync.Mutex
@@ -183,299 +177,4 @@ func StopScan(id string) error {
 	}
 	log.Printf("[StopScan] no active scan with id: %s", id)
 	return fmt.Errorf("no active scan with id %s", id)
-}
-
-func runSingleScanner(ctx context.Context, name string, targets []string) error {
-	log.Printf("[runSingleScanner] starting scanner '%s' on targets: %v", name, targets)
-
-	switch strings.ToLower(name) {
-	case "nikto":
-		return runNikto(ctx, targets)
-	case "nuclei":
-		return runNuclei(ctx, targets)
-	case "wapiti":
-		return runWapiti(ctx, targets)
-	case "zap":
-		return runZap(ctx, targets)
-	default:
-		log.Printf("[runSingleScanner] unknown scanner: %s (skipping)", name)
-		return nil
-	}
-}
-
-// --- NIKTO ---
-
-func runNikto(ctx context.Context, targets []string) error {
-	log.Printf("[runNikto] starting for targets: %v", targets)
-
-	reportDir := reportsDirFromCtx(ctx)
-	outputDir := outputsDirFromCtx(ctx)
-
-	plugins := []string{
-		"tests", "cookies", "headers", "ssl", "httpoptions", "robots",
-		"paths", "dictionary", "cgi", "content_search", "fileops",
-		"msgs", "sitefiles", "clientaccesspolicy", "multiple_index",
-		"shellshock", "strutschock", "apache_expect_xss", "put_del_test", "report_json",
-	}
-	pluginArg := strings.Join(plugins, ";")
-
-	for _, target := range targets {
-		select {
-		case <-ctx.Done():
-			log.Printf("[runNikto] context cancelled, stopping. Last target: %s", target)
-			return nil
-		default:
-		}
-
-		safeTarget := helper.SanitizeFilename(target)
-
-		reportFile := filepath.Join(
-			reportDir,
-			fmt.Sprintf("nikto-%s-%d.json", safeTarget, time.Now().Unix()),
-		)
-		outputFile := filepath.Join(
-			outputDir,
-			fmt.Sprintf("nikto-%s-%d.log", safeTarget, time.Now().Unix()),
-		)
-
-		log.Printf("[runNikto] scanning target: %s -> report: %s, output: %s",
-			target, reportFile, outputFile)
-
-		cmd := execCommandContext(
-			ctx,
-			"nikto",
-			"-h", target,
-			"-Tuning", "x6abd",
-			"-Plugins", pluginArg,
-			"-ask", "no",
-			"-nointeractive",
-			"-o", reportFile,
-			"-Format", "json",
-		)
-
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			log.Printf("[runNikto] error running nikto for %s: %v (output: %s)", target, err, string(output))
-		}
-
-		if writeErr := writeFile(outputFile, output, 0o644); writeErr != nil {
-			log.Printf("[runNikto] failed to write nikto output for %s to %s: %v", target, outputFile, writeErr)
-		} else {
-			log.Printf("[runNikto] nikto output written for %s: %s", target, outputFile)
-		}
-
-		if _, err := statFile(reportFile); err == nil {
-			log.Printf("[runNikto] nikto report saved to %s", reportFile)
-		} else {
-			log.Printf("[runNikto] nikto did not produce report for %s (expected: %s): %v", target, reportFile, err)
-			return fmt.Errorf("nikto did not produce report for %s", target)
-		}
-	}
-
-	log.Printf("[runNikto] completed for all targets")
-	return nil
-}
-
-// --- NUCLEI ---
-
-func runNuclei(ctx context.Context, targets []string) error {
-	log.Printf("[runNuclei] starting for targets: %v", targets)
-
-	reportDir := reportsDirFromCtx(ctx)
-	outputDir := outputsDirFromCtx(ctx)
-
-	for _, target := range targets {
-		select {
-		case <-ctx.Done():
-			log.Printf("[runNuclei] context cancelled, stopping. Last target: %s", target)
-			return nil
-		default:
-		}
-
-		safeTarget := helper.SanitizeFilename(target)
-
-		reportFile := filepath.Join(
-			reportDir,
-			fmt.Sprintf("nuclei-%s-%d.json", safeTarget, time.Now().Unix()),
-		)
-		outputFile := filepath.Join(
-			outputDir,
-			fmt.Sprintf("nuclei-%s-%d.log", safeTarget, time.Now().Unix()),
-		)
-
-		log.Printf("[runNuclei] scanning target: %s -> report: %s, output: %s",
-			target, reportFile, outputFile)
-
-		cmd := execCommandContext(
-			ctx,
-			"nuclei",
-			"-u", target,
-			"-duc",
-			"-ni",
-			"-config", nucleiConfigPath,
-			"-json-export", reportFile,
-		)
-
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			log.Printf("[runNuclei] error running nuclei for %s: %v (output: %s)", target, err, string(output))
-		}
-
-		if writeErr := writeFile(outputFile, output, 0o644); writeErr != nil {
-			log.Printf("[runNuclei] failed to write nuclei output for %s to %s: %v", target, outputFile, writeErr)
-		} else {
-			log.Printf("[runNuclei] nuclei output written for %s: %s", target, outputFile)
-		}
-
-		if _, err := statFile(reportFile); err == nil {
-			log.Printf("[runNuclei] nuclei report saved to %s", reportFile)
-		} else {
-			log.Printf("[runNuclei] nuclei did not produce report for %s (expected: %s): %v", target, reportFile, err)
-			return fmt.Errorf("nuclei did not produce report for %s", target)
-		}
-	}
-
-	log.Printf("[runNuclei] completed for all targets")
-	return nil
-}
-
-// --- WAPITI ---
-
-func runWapiti(ctx context.Context, targets []string) error {
-	log.Printf("[runWapiti] starting for targets: %v", targets)
-
-	reportDir := reportsDirFromCtx(ctx)
-	outputDir := outputsDirFromCtx(ctx)
-
-	mods := []string{
-		"backup", "cms", "cookieflags", "crlf", "csp",
-		"csrf", "exec", "file", "htaccess", "https_redirect",
-		"ldap", "log4shell", "methods", "permanentxss", "http_headers",
-		"redirect", "shellshock", "spring4shell", "sql", "ssl", "ssrf",
-		"upload", "wp_enum", "xss", "xxe",
-	}
-	modArg := strings.Join(mods, ",")
-
-	for _, target := range targets {
-		select {
-		case <-ctx.Done():
-			log.Printf("[runWapiti] context cancelled, stopping. Last target: %s", target)
-			return nil
-		default:
-		}
-
-		safeTarget := helper.SanitizeFilename(target)
-
-		reportFile := filepath.Join(
-			reportDir,
-			fmt.Sprintf("wapiti-%s-%d.json", safeTarget, time.Now().Unix()),
-		)
-		outputFile := filepath.Join(
-			outputDir,
-			fmt.Sprintf("wapiti-%s-%d.log", safeTarget, time.Now().Unix()),
-		)
-
-		log.Printf("[runWapiti] scanning target: %s -> report: %s, output: %s",
-			target, reportFile, outputFile)
-
-		cmd := execCommandContext(
-			ctx,
-			"wapiti",
-			"--flush-session",
-			"-m", modArg,
-			"-u", target,
-			"--scope", "page",
-			"-f", "json",
-			"-o", reportFile,
-		)
-
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			log.Printf("[runWapiti] error running wapiti for %s: %v (output: %s)", target, err, string(output))
-		}
-
-		if writeErr := writeFile(outputFile, output, 0o644); writeErr != nil {
-			log.Printf("[runWapiti] failed to write wapiti output for %s to %s: %v", target, outputFile, writeErr)
-		} else {
-			log.Printf("[runWapiti] wapiti output written for %s: %s", target, outputFile)
-		}
-
-		if _, err := statFile(reportFile); err == nil {
-			log.Printf("[runWapiti] wapiti report saved to %s", reportFile)
-		} else {
-			log.Printf("[runWapiti] wapiti did not produce report for %s (expected: %s): %v", target, reportFile, err)
-			return fmt.Errorf("wapiti did not produce report for %s", target)
-		}
-	}
-
-	log.Printf("[runWapiti] completed for all targets")
-	return nil
-}
-
-// --- ZAP ---
-
-func runZap(ctx context.Context, targets []string) error {
-	log.Printf("[runZap] starting for targets: %v", targets)
-
-	reportDir := reportsDirFromCtx(ctx)
-	outputDir := outputsDirFromCtx(ctx)
-
-	for _, target := range targets {
-		select {
-		case <-ctx.Done():
-			log.Printf("[runZap] context cancelled, stopping. Last target: %s", target)
-			return nil
-		default:
-		}
-
-		safeTarget := helper.SanitizeFilename(target)
-
-		reportFileName := fmt.Sprintf("zap-%s-%d.json", safeTarget, time.Now().Unix())
-
-		reportFile := filepath.Join(
-			reportDir,
-			reportFileName,
-		)
-		outputFile := filepath.Join(
-			outputDir,
-			fmt.Sprintf("zap-%s-%d.log", safeTarget, time.Now().Unix()),
-		)
-
-		log.Printf("[runZap] scanning target: %s -> report: %s, output: %s",
-			target, reportFile, outputFile)
-
-		cmd := execCommandContext(
-			ctx,
-			"zap",
-			"-cmd",
-			"-autorun", zapConfigPath,
-		)
-		env := os.Environ()
-		env = append(env, "SCANROPOD_TARGET_URL="+target)
-		env = append(env, "SCANROPOD_REPORT_DIR="+reportDir)
-		env = append(env, "SCANROPOD_REPORT_FILE="+reportFileName)
-		cmd.Env = env
-
-		output, err := cmd.CombinedOutput()
-
-		if err != nil {
-			log.Printf("[runZap] error running zap for %s: %v (output: %s)", target, err, string(output))
-		}
-
-		if writeErr := writeFile(outputFile, output, 0o644); writeErr != nil {
-			log.Printf("[runZap] failed to write zap output for %s to %s: %v", target, outputFile, writeErr)
-		} else {
-			log.Printf("[runZap] zap output written for %s: %s", target, outputFile)
-		}
-
-		if _, err := statFile(reportFile); err == nil {
-			log.Printf("[runZap] zap report saved to %s", reportFile)
-		} else {
-			log.Printf("[runZap] zap did not produce report for %s (expected: %s): %v", target, reportFile, err)
-			return fmt.Errorf("zap did not produce report for %s", target)
-		}
-	}
-
-	log.Printf("[runZap] completed for all targets")
-	return nil
 }

@@ -1,3 +1,6 @@
+// Package model holds the data types of the Scanropod API contract:
+// scan requests, scan status/results, and the aggregated report. These
+// types are shared across the API, scanner, and report packages.
 package model
 
 import "time"
@@ -40,11 +43,4 @@ const (
 type AggregatedReport struct {
 	ScanDate time.Time                                           `json:"scan_date"`
 	Findings map[string]map[string]map[ScannerName][]interface{} `json:"findings"`
-}
-
-type NormalizedFinding struct {
-	TargetURL string      // e.g. "http://192.168.0.156"
-	CWEID     string      // "CWE-79", "0" for informational
-	Scanner   ScannerName // zap/wapiti/...
-	Payload   interface{} // concrete struct per scanner
 }

@@ -1,25 +1,46 @@
-package wapiti
+package report
 
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
-	"strings"
 
-	"github.com/kozlm/scanropod/internal/cwe"
-	"github.com/kozlm/scanropod/internal/helper"
 	"github.com/kozlm/scanropod/internal/model"
 )
 
-type result struct {
+// parseWapitiReports reads all Wapiti JSON files for given scanID
+func parseWapitiReports(scanID, wapitiCSVPath string) ([]normalizedFinding, error) {
+	cweLookup, err := loadWapitiMap(wapitiCSVPath)
+	if err != nil {
+		return nil, fmt.Errorf("load wapiti cwe map: %w", err)
+	}
+
+	paths, err := collectReportFiles(scanID, "wapiti-")
+	if err != nil {
+		return nil, err
+	}
+
+	var out []normalizedFinding
+	for _, path := range paths {
+		name := filepath.Base(path)
+		fileFindings, err := parseWapitiFile(path, cweLookup)
+		if err != nil {
+			return nil, fmt.Errorf("parse wapiti report %s: %w", name, err)
+		}
+		out = append(out, fileFindings...)
+	}
+
+	return out, nil
+}
+
+type wapitiReport struct {
 	Vulnerabilities map[string][]wapitiFinding `json:"vulnerabilities"`
 	Anomalies       map[string][]wapitiFinding `json:"anomalies"`
 	Additionals     map[string][]wapitiFinding `json:"additionals"`
-	Infos           info                       `json:"infos"`
+	Infos           wapitiInfo                 `json:"infos"`
 }
 
-type info struct {
+type wapitiInfo struct {
 	Target string `json:"target"`
 }
 
@@ -46,74 +67,28 @@ type wapitiFindingPayload struct {
 	Path    string `json:"path"`
 }
 
-var (
-	loadWapitiMap = cwe.LoadWapitiMap
-	readDir       = os.ReadDir
-	readFile      = os.ReadFile
-	cleanUrl      = helper.CleanUrl
-)
-
-// ParseReports reads all Wapiti JSON files for given scanID
-func ParseReports(scanID, wapitiCSVPath string) ([]model.NormalizedFinding, error) {
-	cweMap, err := loadWapitiMap(wapitiCSVPath)
-	if err != nil {
-		return nil, fmt.Errorf("load wapiti cwe map: %w", err)
-	}
-
-	reportsDir := filepath.Join("reports", scanID)
-	entries, err := readDir(reportsDir)
-	if err != nil {
-		return nil, fmt.Errorf("read reports dir: %w", err)
-	}
-
-	var out []model.NormalizedFinding
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		name := entry.Name()
-		if !isWapitiReportFile(name) {
-			continue
-		}
-
-		path := filepath.Join(reportsDir, name)
-		fileFindings, err := parseSingleReport(path, cweMap)
-		if err != nil {
-			return nil, fmt.Errorf("parse wapiti report %s: %w", name, err)
-		}
-		out = append(out, fileFindings...)
-	}
-
-	return out, nil
-}
-
-func isWapitiReportFile(name string) bool {
-	return filepath.Ext(name) == ".json" && strings.HasPrefix(name, "wapiti-")
-}
-
-func parseSingleReport(path string, cweMap *cwe.WapitiMap) ([]model.NormalizedFinding, error) {
+func parseWapitiFile(path string, cweLookup *wapitiCWEMap) ([]normalizedFinding, error) {
 	data, err := readFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	var res result
+	var res wapitiReport
 	if err := json.Unmarshal(data, &res); err != nil {
 		return nil, fmt.Errorf("unmarshal wapiti json: %w", err)
 	}
 
-	findings := make([]model.NormalizedFinding, 0)
+	findings := make([]normalizedFinding, 0)
 
 	// vulnerabilities, anomalies, additionals have same structure
 	addCategory := func(name string, categoryEntries []wapitiFinding) error {
 		for _, categoryEntry := range categoryEntries {
-			targetUrl, err := cleanUrl(res.Infos.Target)
+			targetUrl, err := cleanURL(res.Infos.Target)
 			if err != nil {
 				return fmt.Errorf("clean wapiti targetUrl: %w", err)
 			}
 
-			cweID := cweMap.Lookup(name, categoryEntry.Info)
+			cweID := cweLookup.Lookup(name, categoryEntry.Info)
 
 			payload := wapitiFindingPayload{
 				Name:    name,
@@ -125,7 +100,7 @@ func parseSingleReport(path string, cweMap *cwe.WapitiMap) ([]model.NormalizedFi
 				Path:    categoryEntry.Path,
 			}
 
-			findings = append(findings, model.NormalizedFinding{
+			findings = append(findings, normalizedFinding{
 				TargetURL: targetUrl,
 				CWEID:     cweID,
 				Scanner:   model.ScannerWapiti,
